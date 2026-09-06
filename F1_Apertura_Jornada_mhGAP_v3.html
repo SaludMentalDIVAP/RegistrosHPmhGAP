@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>F1 — Apertura de Jornada mhGAP</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --navy: #00477A;
+  --teal: #0E8A6B;
+  --teal-light: #e8f5f1;
+  --navy-light: #e8f0f7;
+  --radius: 10px;
+  --border: #e0e0e0;
+  --border-focus: #00477A;
+  --text: #1a1a1a;
+  --text-secondary: #555;
+  --text-muted: #888;
+  --danger: #c0392b;
+  --danger-bg: #fdf0ee;
+  --success: #0E8A6B;
+  --success-bg: #e8f5f1;
+  --warning: #b7660a;
+  --warning-bg: #fef4e4;
+  --manual-bg: #fff8e1;
+  --manual-border: #f0c040;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #f2f4f7;
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 3rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* HEADER */
+.header {
+  background: var(--navy);
+  color: white;
+  padding: 1.25rem 1.25rem 1.5rem;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+.header h1 { font-size: 18px; font-weight: 600; color: white; line-height: 1.3; }
+.header p { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 4px; }
+
+/* DEMO BANNER */
+.demo-banner {
+  background: var(--warning-bg);
+  border-bottom: 2px solid var(--manual-border);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.demo-banner span { font-size: 13px; color: var(--warning); font-weight: 500; }
+.btn-demo {
+  background: var(--warning);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-demo:active { opacity: 0.85; }
+
+/* CARDS */
+.card {
+  background: white;
+  border-radius: var(--radius);
+  margin: 1rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--teal);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 1rem 1rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 0.25rem;
+}
+
+/* FIELDS */
+.field {
+  padding: 0.75rem 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.field:last-child { padding-bottom: 1rem; }
+.field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.field label .req { color: var(--teal); }
+.field label .manual-tag {
+  font-size: 10px;
+  background: var(--manual-border);
+  color: #7a5000;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  display: none;
+}
+.field label .manual-tag.visible { display: inline-block; }
+
+.field input,
+.field select {
+  height: 48px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fafafa;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-color: #fafafa;
+  padding-right: 36px;
+}
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--navy);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(0,71,122,0.1);
+}
+.field select:disabled { opacity: 0.45; background-color: #f0f0f0; }
+
+/* Campo en modo manual (editado por usuario) */
+.field input.manual-edited {
+  border-color: var(--manual-border);
+  background: var(--manual-bg);
+}
+.field input.manual-edited:focus {
+  border-color: var(--warning);
+  box-shadow: 0 0 0 3px rgba(240,192,64,0.2);
+}
+
+/* Campo precargado (readonly desde base) */
+.field input.autocompleted {
+  border-color: var(--teal);
+  background: var(--teal-light);
+  color: #0a5c49;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 0.75rem;
+  padding: 0.75rem 1rem 0;
+}
+.field-row:last-child { padding-bottom: 1rem; }
+.field-row .field { padding: 0; }
+
+/* AUTOCOMPLETE CARD */
+.ac-card {
+  display: none;
+  margin: 0.25rem 1rem 0.25rem;
+  background: var(--teal-light);
+  border: 1.5px solid var(--teal);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  gap: 10px 20px;
+  flex-wrap: wrap;
+}
+.ac-card.visible { display: flex; }
+.ac-card .ac-note {
+  width: 100%;
+  font-size: 11px;
+  color: var(--teal);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.ac-item { display: flex; flex-direction: column; gap: 2px; }
+.ac-label { font-size: 11px; color: var(--teal); font-weight: 500; }
+.ac-value { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+
+/* RUT no encontrado */
+.rut-not-found {
+  display: none;
+  margin: 0.25rem 1rem 0.25rem;
+  background: var(--warning-bg);
+  border: 1.5px solid var(--manual-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  color: var(--warning);
+}
+.rut-not-found.visible { display: block; }
+
+/* TOGGLE */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  margin: 0.5rem 0;
+}
+.toggle-label { font-size: 14px; color: var(--text-secondary); flex: 1; line-height: 1.4; }
+.toggle { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background: #ccc; border-radius: 26px; cursor: pointer; transition: background 0.2s; }
+.slider:before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.toggle input:checked + .slider { background: var(--teal); }
+.toggle input:checked + .slider:before { transform: translateX(18px); }
+
+.extra-loc { display: none; }
+.extra-loc.visible { display: block; }
+
+/* VALIDACIÓN */
+.err {
+  font-size: 12px;
+  color: var(--danger);
+  display: none;
+  padding: 3px 2px 0;
+}
+.err.visible { display: block; }
+
+.field input.error,
+.field select.error {
+  border-color: var(--danger) !important;
+  background: var(--danger-bg) !important;
+}
+
+/* ALERTA GENERAL */
+.alert-missing {
+  display: none;
+  margin: 0 1rem 0.5rem;
+  background: var(--danger-bg);
+  border: 1.5px solid var(--danger);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  color: var(--danger);
+  font-weight: 500;
+}
+.alert-missing.visible { display: block; }
+
+/* BOTONES */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: calc(100% - 2rem);
+  margin: 0.5rem 1rem 1rem;
+  min-height: 56px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-primary:active { background: #003a63; transform: scale(0.98); }
+.btn-sub { font-size: 12px; font-weight: 400; opacity: 0.78; }
+
+.btn-download {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  justify-content: center;
+  min-height: 50px;
+}
+.btn-download:active { opacity: 0.85; transform: scale(0.98); }
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  color: var(--navy);
+  border: 1.5px solid var(--navy);
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  min-height: 50px;
+  font-family: inherit;
+}
+.btn-secondary:active { background: #f0f4f8; }
+
+/* RESULTADO */
+.result-section { display: none; }
+.result-section.visible { display: block; }
+.result-header {
+  background: var(--teal);
+  color: white;
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+.result-header p { font-size: 13px; opacity: 0.85; margin-bottom: 8px; }
+.id-badge {
+  display: inline-block;
+  background: white;
+  color: var(--navy);
+  font-size: 2.2rem;
+  font-weight: 700;
+  padding: 0.5rem 1.75rem;
+  border-radius: 12px;
+  letter-spacing: 0.06em;
+  margin: 4px 0 12px;
+}
+.result-header .sub { font-size: 12px; opacity: 0.8; }
+
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  gap: 1rem;
+}
+#qr-canvas-wrap {
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+}
+#qr-canvas-wrap canvas,
+#qr-canvas-wrap img { display: block; }
+
+.email-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--success-bg);
+  color: var(--success);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+}
+
+/* MANUAL DATA NOTICE */
+.manual-notice {
+  display: none;
+  background: var(--manual-bg);
+  border: 1.5px solid var(--manual-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  color: var(--warning);
+  width: 100%;
+}
+.manual-notice.visible { display: block; }
+.manual-notice strong { display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-badge">F1</span>
+  <h1>Apertura de jornada</h1>
+  <p>HP mhGAP — División de Atención Primaria MINSAL</p>
+</div>
+
+<!-- BANNER DEMO -->
+<div class="demo-banner">
+  <span>🧪 Modo de prueba activo</span>
+  <button class="btn-demo" id="btn-demo">Cargar funcionario de prueba</button>
+</div>
+
+<!-- FORMULARIO -->
+<div id="form-section">
+
+  <!-- CAPACITADOR -->
+  <div class="card">
+    <div class="section-title">Capacitador</div>
+
+    <div class="field">
+      <label>RUT <span class="req">*</span></label>
+      <input type="text" id="rut" placeholder="12.345.678-9" maxlength="12" inputmode="numeric" autocomplete="off">
+      <span class="err" id="rut-err">Ingresa un RUT válido</span>
+    </div>
+
+    <div class="ac-card" id="ac-card">
+      <div class="ac-note">✓ Datos encontrados en la base de dotación</div>
+      <div class="ac-item"><span class="ac-label">Nombre</span><span class="ac-value" id="ac-nombre">—</span></div>
+      <div class="ac-item"><span class="ac-label">Servicio de Salud</span><span class="ac-value" id="ac-ss">—</span></div>
+      <div class="ac-item"><span class="ac-label">Comuna</span><span class="ac-value" id="ac-comuna">—</span></div>
+      <div class="ac-item"><span class="ac-label">Centro de Salud</span><span class="ac-value" id="ac-centro">—</span></div>
+    </div>
+
+    <div class="rut-not-found" id="rut-not-found">
+      ⚠️ RUT no encontrado en la base de dotación. Por favor completa tus datos manualmente. Quedarán registrados para incorporarse a la base.
+    </div>
+
+    <div class="field">
+      <label>
+        Nombre completo <span class="req">*</span>
+        <span class="manual-tag" id="tag-nombre">Ingresado manualmente</span>
+      </label>
+      <input type="text" id="nombre" placeholder="Nombre y apellidos" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <span class="err" id="nombre-err">Ingresa tu nombre completo</span>
+    </div>
+
+    <div class="field">
+      <label>
+        Servicio de Salud <span class="req">*</span>
+        <span class="manual-tag" id="tag-ss-cap">Ingresado manualmente</span>
+      </label>
+      <input type="text" id="ss-cap" placeholder="Ej: Metropolitano Sur" list="ss-list" autocomplete="off">
+      <datalist id="ss-list"></datalist>
+      <span class="err" id="ss-cap-err">Ingresa el Servicio de Salud</span>
+    </div>
+
+    <div class="field">
+      <label>
+        Comuna <span class="req">*</span>
+        <span class="manual-tag" id="tag-comuna-cap">Ingresado manualmente</span>
+      </label>
+      <input type="text" id="comuna-cap" placeholder="Ej: La Pintana">
+      <span class="err" id="comuna-cap-err">Ingresa la comuna</span>
+    </div>
+
+    <div class="field">
+      <label>
+        Centro de Salud <span class="req">*</span>
+        <span class="manual-tag" id="tag-centro-cap">Ingresado manualmente</span>
+      </label>
+      <input type="text" id="centro-cap" placeholder="Nombre del establecimiento">
+      <span class="err" id="centro-cap-err">Ingresa el centro de salud</span>
+    </div>
+
+    <div class="field">
+      <label>Correo electrónico <span class="req">*</span></label>
+      <input type="email" id="email" placeholder="nombre@ejemplo.cl" inputmode="email" autocomplete="off">
+      <span class="err" id="email-err">Ingresa un correo válido</span>
+    </div>
+  </div>
+
+  <!-- JORNADA -->
+  <div class="card">
+    <div class="section-title">Jornada</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Módulo <span class="req">*</span></label>
+        <select id="modulo" autocomplete="off" name="modulo_x7k">
+          <option value="">Seleccionar...</option>
+          <option value="APE">APE — Prácticas Esenciales</option>
+          <option value="DEP">DEP — Depresión</option>
+          <option value="PSI">PSI — Psicosis</option>
+          <option value="EPI">EPI — Epilepsia</option>
+          <option value="MCON">MCON — Niño y Adolescente</option>
+          <option value="DEM">DEM — Demencia</option>
+          <option value="SUS">SUS — Consumo de Sustancias</option>
+          <option value="SUI">SUI — Autolesión/Suicidio</option>
+          <option value="OTR">OTR — Otros padecimientos</option>
+          <option value="SEN">SEN — Sensibilización</option>
+          <option value="MAC">MAC — Mapeo actores claves</option>
+        </select>
+        <span class="err" id="modulo-err">Selecciona un módulo</span>
+      </div>
+      <div class="field">
+        <label>Nivel <span class="req">*</span></label>
+        <select id="nivel" autocomplete="off" name="nivel_q2m">
+          <option value="">Seleccionar...</option>
+          <option>General</option>
+          <option>Intermedia</option>
+          <option>Avanzada</option>
+        </select>
+        <span class="err" id="nivel-err">Selecciona un nivel</span>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Fecha <span class="req">*</span></label>
+        <input type="date" id="fecha" autocomplete="off" name="fecha_r4w">
+        <span class="err" id="fecha-err">Selecciona la fecha</span>
+      </div>
+      <div class="field">
+        <label>Convocados <span class="req">*</span></label>
+        <input type="number" id="convocados" placeholder="0" min="1" max="500" inputmode="numeric" autocomplete="off" name="conv_p9z">
+        <span class="err" id="convocados-err">Ingresa el número</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LUGAR -->
+  <div class="card">
+    <div class="section-title">Lugar de la jornada</div>
+
+    <div class="toggle-row">
+      <span class="toggle-label">La jornada se realiza en mi mismo establecimiento</span>
+      <label class="toggle">
+        <input type="checkbox" id="mismo-lugar" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="extra-loc" id="extra-loc">
+      <div class="field">
+        <label>Servicio de Salud <span class="req">*</span></label>
+        <select id="ss-jornada">
+          <option value="">Seleccionar...</option>
+        </select>
+        <span class="err" id="ss-jornada-err">Selecciona el SS</span>
+      </div>
+      <div class="field">
+        <label>Comuna <span class="req">*</span></label>
+        <select id="comuna-jornada" disabled>
+          <option value="">Seleccionar SS primero</option>
+        </select>
+        <span class="err" id="comuna-jornada-err">Selecciona la comuna</span>
+      </div>
+      <div class="field">
+        <label>Centro de Salud <span class="req">*</span></label>
+        <select id="centro-jornada" disabled>
+          <option value="">Seleccionar comuna primero</option>
+        </select>
+        <span class="err" id="centro-jornada-err">Selecciona el centro</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert-missing" id="alert-missing">
+    Por favor completa todos los campos obligatorios antes de continuar.
+  </div>
+
+  <button class="btn-primary" id="btn-iniciar">
+    Iniciar jornada en el sistema
+    <span class="btn-sub">Se generará un ID y un QR para los participantes</span>
+  </button>
+
+</div>
+
+<!-- RESULTADO -->
+<div class="result-section" id="result-section">
+  <div class="result-header">
+    <p>Jornada iniciada exitosamente</p>
+    <div class="id-badge" id="result-id">APE-048</div>
+    <div class="sub">Comparte este código o el QR con los participantes</div>
+  </div>
+
+  <div class="card">
+    <div class="qr-container">
+      <div id="qr-canvas-wrap"></div>
+
+      <button class="btn-download" id="btn-download-qr">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar QR para PPT
+      </button>
+
+      <div class="email-notice">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="email-sent-txt">QR enviado a nombre@ejemplo.cl</span>
+      </div>
+
+      <div class="manual-notice" id="manual-notice">
+        <strong>⚠️ Datos ingresados manualmente</strong>
+        Este registro incluye datos que no estaban en la base de dotación. Quedarán marcados en el sistema para su incorporación automática a la base.
+      </div>
+
+      <button class="btn-secondary" id="btn-nueva">Iniciar otra jornada</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATOS DE PRUEBA ──
+const DEMO = {
+  rut: '12.345.678-9',
+  nombre: 'María González Pino',
+  ss: 'Metropolitano Sur',
+  comuna: 'La Pintana',
+  centro: 'Centro de Salud Familiar El Roble',
+  email: 'maria.gonzalez@ssms.cl',
+};
+
+// ── BASE DE DOTACIÓN (simulada) ──
+const DOTACION = {
+  '12345678-9': { nombre:'María González Pino', ss:'Metropolitano Sur', comuna:'La Pintana', centro:'Centro de Salud Familiar El Roble' },
+  '11111111-1': { nombre:'Carlos Muñoz Reyes', ss:'Metropolitano Norte', comuna:'Recoleta', centro:'Centro de Salud Familiar Recoleta' },
+  '22222222-2': { nombre:'Ana Pérez Soto', ss:'Valparaíso San Antonio', comuna:'Valparaíso', centro:'Centro de Salud Familiar Barón' },
+};
+
+// ── CORRELATIVOS POR MÓDULO ──
+const CORRELATIVOS = {APE:47,DEP:23,PSI:12,EPI:8,MCON:15,DEM:6,SUS:19,SUI:31,OTR:4,SEN:9,MAC:3};
+
+// ── BASE SS → COMUNA → CENTROS ──
+const DB = {"Arica y Parinacota":{"Arica":["Centro Comunitario de Salud Familiar Cerro La Cruz","Centro de Salud Familiar Dr. Amador Neghme de Arica","Centro de Salud Familiar Remigio Sapunar Marín","Centro de Salud Familiar Víctor Bertín Soto","Posta de Salud Rural Poconchile","Posta de Salud Rural San Miguel de Azapa"],"Putre":["Centro de Salud Familiar Putre","Posta de Salud Rural Belén (Putre)"],"General Lagos":["Posta de Salud Rural Visviri"],"Camarones":["Posta de Salud Rural Codpa"]},"Tarapacá":{"Iquique":["Centro de Salud Familiar Cirujano Aguirre","Centro de Salud Familiar Cirujano Guzmán","Centro de Salud Familiar Cirujano Videla","Centro de Salud Familiar Sur de Iquique"],"Alto Hospicio":["Centro de Salud Familiar Dr. Héctor Reyno Gutiérrez","Centro de Salud Familiar Dr. Yandry Añazco Montero","Centro de Salud Familiar Pedro Pulgar Melgarejo"],"Pozo Almonte":["Centro de Salud Familiar Pozo Almonte"],"Colchane":["Centro de Salud Familiar Colchane"]},"Antofagasta":{"Antofagasta":["Centro de Salud Familiar Antonio Rendic","Centro de Salud Familiar Central Oriente de Antofagasta","Centro de Salud Familiar Centro Sur de Antofagasta","Centro de Salud Familiar Corvallis","Centro de Salud Familiar Norte de Antofagasta","Centro de Salud Familiar Valdivieso"],"Calama":["Centro de Salud Familiar Central de Calama","Centro de Salud Familiar Montt","Centro de Salud Familiar Norponiente"],"Tocopilla":["Hospital Dr. Marcos Macuada (Tocopilla)"],"Taltal":["Hospital 21 de Mayo (Taltal)"],"San Pedro de Atacama":["Centro de Salud Familiar San Pedro Atacama"]},"Atacama":{"Copiapó":["Centro de Salud Familiar Dr. Bernardo Mellibovsky","Centro de Salud Familiar Juan Martínez","Centro de Salud Familiar Manuel Rodríguez","Centro de Salud Familiar Paipote","Centro de Salud Familiar Pedro León Gallo","Centro de Salud Familiar Santa Elvira"],"Vallenar":["Centro de Salud Familiar Baquedano","Centro de Salud Familiar Estación","Centro de Salud Familiar Hermanos Carrera"],"Caldera":["Centro de Salud Familiar Rosario Corvalán"],"Chañaral":["Centro de Salud Familiar Dr. Luis Herrera"]},"Coquimbo":{"La Serena":["Centro de Salud Familiar Cardenal Caro","Centro de Salud Familiar Cardenal Raúl Silva Henríquez de La Serena","Centro de Salud Familiar Juan Pablo II (La Serena)","Centro de Salud Familiar Las Compañías","Centro de Salud Familiar Pedro Aguirre Cerda"],"Coquimbo":["Centro de Salud Familiar El Sauce","Centro de Salud Familiar San Juan","Centro de Salud Familiar Santa Cecilia","Centro de Salud Familiar Tierras Blancas"],"Ovalle":["Centro de Salud Familiar Jorge Jordán Domic","Centro de Salud Familiar Marcos Macuada"],"Illapel":["Centro de Salud Familiar Urbano de Illapel"]},"Valparaíso San Antonio":{"Valparaíso":["Centro de Salud Familiar Barón","Centro de Salud Familiar Cordillera","Centro de Salud Familiar Esperanza","Centro de Salud Familiar Las Cañas","Centro de Salud Familiar Placeres","Centro de Salud Familiar Plaza Justicia"],"San Antonio":["Centro de Salud Familiar 30 de Marzo","Centro de Salud Familiar Barrancas","Centro de Salud Familiar San Antonio"],"Cartagena":["Centro de Salud Familiar Cartagena"],"Algarrobo":["Centro de Salud Familiar Algarrobo"]},"Viña del Mar Quillota":{"Viña del Mar":["Centro de Salud Familiar Brígida Zavala","Centro de Salud Familiar Gómez Carreño","Centro de Salud Familiar Las Torres","Centro de Salud Familiar Marco Maldonado","Centro de Salud Familiar Miraflores","Centro de Salud Familiar Nueva Aurora"],"Quilpué":["Centro de Salud Familiar El Belloto","Centro de Salud Familiar Pompeya","Centro de Salud Familiar Quilpué"],"Quillota":["Centro de Salud Familiar Cardenal Raúl Silva Henríquez","Centro de Salud Familiar La Palma","Centro de Salud Familiar San Pedro"],"Villa Alemana":["Centro de Salud Familiar Eduardo Frei Montalva","Centro de Salud Familiar Villa Alemana"],"Con Con":["Centro de Salud Familiar Concón"],"Limache":["Hospital Santo Tomás (Limache)"],"La Cruz":["Centro de Salud Familiar La Cruz"]},"Aconcagua":{"San Felipe":["Centro de Salud Familiar Dr. Segismundo Iturra Taito","Centro de Salud Familiar San Felipe El Real"],"Los Andes":["Centro de Salud Familiar Centenario","Centro de Salud Familiar Cordillera Andina"],"Llaillay":["Centro de Salud Familiar Llaillay"]},"Metropolitano Norte":{"Recoleta":["Centro de Salud Familiar Dr. Juan Petrinovic","Centro de Salud Familiar Quinta Bella","Centro de Salud Familiar Recoleta","Centro de Salud Familiar Valdivieso"],"Independencia":["Centro de Salud Familiar Agustín Cruz Melo","Centro de Salud Familiar Juan Antonio Ríos"],"Conchalí":["Centro de Salud Familiar Alberto Bachelet Martínez","Centro de Salud Familiar José Symon Ojeda","Centro de Salud Familiar Lucas Sierra"],"Huechuraba":["Centro de Salud Familiar Dr. Salvador Allende Gossens","Centro de Salud Familiar La Pincoya"],"Quilicura":["Centro de Salud Familiar Irene Frei de Cid","Centro de Salud Familiar Manuel Bustos Huerta"],"Colina":["Centro de Salud Familiar Colina","Centro de Salud Familiar Esmeralda"],"Lampa":["Centro de Salud Familiar Batuco","Centro de Salud Familiar Juan Pablo II de Lampa"]},"Metropolitano Occidente":{"Pudahuel":["Centro de Salud Familiar Dr. Gustavo Molina","Centro de Salud Familiar Pudahuel Estrella","Centro de Salud Familiar Pudahuel Poniente","Centro de Salud Familiar Violeta Parra"],"Renca":["Centro de Salud Familiar Bicentenario","Centro de Salud Familiar Huamachuco","Centro de Salud Familiar Renca"],"Quinta Normal":["Centro de Salud Familiar Andes","Centro de Salud Familiar Garín","Centro de Salud Familiar Lo Franco"],"Lo Prado":["Centro de Salud Familiar Dr. Carlos Avendaño","Centro de Salud Familiar Pablo Neruda"],"Cerro Navia":["Centro de Salud Familiar Cerro Navia","Centro de Salud Familiar Dr. Arturo Albertz"],"Melipilla":["Centro de Salud Familiar Dr. Edelberto Elgueta","Centro de Salud Familiar Dr. Francisco Boris Soler"],"El Monte":["Centro de Salud Familiar El Monte"],"Peñaflor":["Centro de Salud Familiar Peñaflor"]},"Metropolitano Central":{"Santiago":["Centro de Salud Familiar Arauco","Centro de Salud Familiar Ignacio Domeyko","Centro de Salud Familiar Matta Sur","Centro de Salud Familiar N° 1 Dr. Ramón Corbalán Melgarejo"],"Maipú":["Centro de Salud Familiar Clotario Blest","Centro de Salud Familiar Dr. Carlos Godoy","Centro de Salud Familiar Dr. Iván Insunza","Centro de Salud Familiar Maipú","Centro de Salud Familiar Presidenta Michelle Bachelet"],"Estación Central":["Centro de Salud Familiar Las Mercedes","Centro de Salud Familiar Padre Vicente Irarrázabal"],"Cerrillos":["Centro de Salud Familiar Dr. Norman Voulliéme"]},"Metropolitano Sur":{"La Pintana":["Centro de Salud Familiar El Roble","Centro de Salud Familiar Flor Fernández","Centro de Salud Familiar Pablo de Rokha","Centro de Salud Familiar San Rafael","Centro de Salud Familiar Santo Tomás"],"San Bernardo":["Centro de Salud Familiar Carol Urzúa","Centro de Salud Familiar Confraternidad","Centro de Salud Familiar El Manzano","Centro de Salud Familiar Padre Joan Alsina"],"El Bosque":["Centro de Salud Familiar Canciller Orlando Letelier","Centro de Salud Familiar Dr. Carlos Lorca Tobar"],"San Joaquín":["Centro de Salud Familiar Arturo Baeza Goñi","Centro de Salud Familiar San Joaquín"],"Pedro Aguirre Cerda":["Centro de Salud Familiar Amador Neghme","Centro de Salud Familiar Villa Sur"],"San Miguel":["Centro de Salud Familiar Barros Luco","Centro de Salud Familiar Recreo"],"La Cisterna":["Centro de Salud Familiar Eduardo Frei Montalva"],"Lo Espejo":["Centro de Salud Familiar Clara Estrella","Centro de Salud Familiar Julio Acuña Pinzón"],"Buin":["Centro de Salud Familiar Alto Jahuel","Centro de Salud Familiar Maipo"],"Paine":["Centro de Salud Familiar Dr. Miguel Ángel Solar"]},"Metropolitano Oriente":{"Providencia":["Centro de Salud Familiar Aguilucho","Centro de Salud Familiar Dr. Alfonso Leng","Centro de Salud Familiar Dr. Hernán Alessandri"],"Peñalolén":["Centro de Salud Familiar La Faena","Centro de Salud Familiar Lo Hermida","Centro de Salud Familiar San Luis"],"La Florida":["Centro de Salud Familiar La Florida","Centro de Salud Familiar Los Quillayes","Centro de Salud Familiar Santa Amalia"],"La Reina":["Centro de Salud Familiar Juan Pablo II (La Reina)","Centro de Salud Familiar Ossandon"],"Ñuñoa":["Centro de Salud Familiar Rosita Renard","Centro de Salud Familiar Salvador Bustos"],"Macul":["Centro de Salud Familiar Félix de Amesti","Centro de Salud Familiar Padre Alberto Hurtado"],"Las Condes":["Centro de Salud Familiar Aníbal Ariztía","Centro de Salud Familiar Apoquindo"]},"Metropolitano Sur Oriente":{"Puente Alto":["Centro de Salud Familiar Bernardo Leighton","Centro de Salud Familiar Dr. Alejandro del Río","Centro de Salud Familiar Karol Wojtyla","Centro de Salud Familiar Vista Hermosa"],"La Pintana":["Centro de Salud Familiar El Roble","Centro de Salud Familiar San Rafael"],"La Florida":["Centro de Salud Familiar La Florida","Centro de Salud Familiar Los Castaños"],"La Granja":["Centro de Salud Familiar La Granja","Centro de Salud Familiar Malaquías Concha"],"San Ramón":["Centro de Salud Familiar La Bandera","Centro de Salud Familiar Poetisa Gabriela Mistral"]},"Del Libertador B.O'Higgins":{"Rancagua":["Centro de Salud Familiar N° 1 Dr. Enrique Dintrans","Centro de Salud Familiar N° 2 Dr. Eduardo Geyter","Centro de Salud Familiar N° 3 Dr. Abel Zapata"],"San Fernando":["Centro de Salud Familiar Chacabuco","Centro de Salud Familiar Oriente de San Fernando"],"Rengo":["Centro de Salud Familiar Rengo","Centro de Salud Familiar Rosario"]},"Del Maule":{"Talca":["Centro de Salud Familiar Bicentenario","Centro de Salud Familiar Dr. Julio Contardo Urzúa","Centro de Salud Familiar Las Américas"],"Curicó":["Centro de Salud Familiar Colón","Centro de Salud Familiar Curicó Centro"],"Linares":["Centro de Salud Familiar Luis Navarrete Carvacho","Centro de Salud Familiar Oscar Bonilla"]},"Ñuble":{"Chillán":["Centro de Salud Familiar Isabel Riquelme","Centro de Salud Familiar Los Volcanes","Centro de Salud Familiar Violeta Parra"],"San Carlos":["Centro de Salud Familiar Dr. José Duran Trujillo","Centro de Salud Familiar Teresa Baldechi"]},"Concepción":{"Concepción":["Centro de Salud Familiar Lorenzo Arenas","Centro de Salud Familiar O'Higgins","Centro de Salud Familiar Tucapel"],"Coronel":["Centro de Salud Familiar Carlos Pinto Fierro","Centro de Salud Familiar Yobilo"],"Chiguayante":["Centro de Salud Familiar Chiguayante","Centro de Salud Familiar La Leonera"]},"Talcahuano":{"Talcahuano":["Centro de Salud Familiar Alcalde Leocán Portus","Centro de Salud Familiar Los Cerros","Centro de Salud Familiar San Vicente"],"Hualpén":["Centro de Salud Familiar Hualpencillo","Centro de Salud Familiar La Floresta"],"Tome":["Centro de Salud Familiar Bellavista","Centro de Salud Familiar Dichato"]},"Biobío":{"Los Ángeles":["Centro de Salud Familiar 2 Septiembre","Centro de Salud Familiar Norte de Los Ángeles","Centro de Salud Familiar Nuevo Horizonte"],"Mulchén":["Hospital de Mulchén"]},"Arauco":{"Lebu":["Centro de Salud Familiar Lebu Norte"],"Cañete":["Hospital Intercultural Kallvu Llanka (Cañete)"],"Arauco":["Centro de Salud Familiar Carampangue","Centro de Salud Familiar Laraquete"]},"Araucanía Norte":{"Angol":["Centro de Salud Familiar Alemania de Angol","Centro de Salud Familiar Huequén"],"Victoria":["Centro de Salud Familiar Victoria"]},"Araucanía Sur":{"Temuco":["Centro de Salud Familiar Amanecer","Centro de Salud Familiar El Carmen","Centro de Salud Familiar Miraflores (Temuco)"],"Padre Las Casas":["Centro de Salud Familiar Las Colinas","Centro de Salud Familiar Padre Las Casas"],"Villarrica":["Centro de Salud Familiar Los Volcanes","Centro de Salud Familiar Villarrica"]},"Los Rios":{"Valdivia":["Centro de Salud Familiar Angachilla","Centro de Salud Familiar Las Ánimas","Centro de Salud Familiar Niebla"],"La Unión":["Centro de Salud Familiar Dr. Alfredo Gantz Mann"],"Panguipulli":["Centro de Salud Familiar Panguipulli"]},"Osorno":{"Osorno":["Centro de Salud Familiar Dr. Pedro Jáuregui","Centro de Salud Familiar Rahue Alto","Centro de Salud Familiar Quinto Centenario"],"Purranque":["Centro de Salud Familiar Purranque"]},"Del Reloncaví":{"Puerto Montt":["Centro de Salud Familiar Alerce","Centro de Salud Familiar Angelmó","Centro de Salud Familiar Antonio Varas","Centro de Salud Familiar Carmela Carvajal"],"Puerto Varas":["Centro de Salud Familiar Nº 1 Puerto Varas"],"Calbuco":["Centro de Salud Familiar Calbuco"]},"Chiloé":{"Castro":["Centro de Salud Familiar Dr. René Tapia Salgado","Centro de Salud Familiar Quillahue"],"Ancud":["Centro de Salud Familiar Dr. Manuel Ferreira Guzman"],"Quellón":["Centro de Salud Familiar Quellón"]},"Aysén":{"Coyhaique":["CESFAM Víctor Domingo Silva","Consultorio Alejandro Gutiérrez"],"Aisén":["Centro de Salud Familiar Puerto Aysen"]},"Magallanes":{"Punta Arenas":["Centro de Salud Familiar 18 Septiembre","Centro de Salud Familiar Carlos Ibáñez","Centro de Salud Familiar Dr. Juan Damianovic"],"Natales":["Centro de Salud Familiar Natales"]}};
+
+// Estado del formulario
+let rutEncontrado = false;
+let datosManual = false;
+
+// Poblar datalist de SS para autocompletado en campo texto
+const ssList = document.getElementById('ss-list');
+Object.keys(DB).sort().forEach(ss => {
+  const opt = document.createElement('option'); opt.value = ss; ssList.appendChild(opt);
+});
+
+// Poblar cascada lugar jornada
+const ssEl = document.getElementById('ss-jornada');
+const comEl = document.getElementById('comuna-jornada');
+const cenEl = document.getElementById('centro-jornada');
+Object.keys(DB).sort().forEach(ss => {
+  const o = document.createElement('option'); o.value = ss; o.textContent = ss; ssEl.appendChild(o);
+});
+ssEl.addEventListener('change', function() {
+  comEl.innerHTML = '<option value="">Seleccionar...</option>';
+  cenEl.innerHTML = '<option value="">Seleccionar comuna primero</option>';
+  comEl.disabled = true; cenEl.disabled = true;
+  if (!this.value) return;
+  Object.keys(DB[this.value]).sort().forEach(c => {
+    const o = document.createElement('option'); o.value = c; o.textContent = c; comEl.appendChild(o);
+  });
+  comEl.disabled = false;
+});
+comEl.addEventListener('change', function() {
+  cenEl.innerHTML = '<option value="">Seleccionar...</option>';
+  cenEl.disabled = true;
+  if (!this.value || !ssEl.value) return;
+  DB[ssEl.value][this.value].forEach(c => {
+    const o = document.createElement('option'); o.value = c; o.textContent = c; cenEl.appendChild(o);
+  });
+  cenEl.disabled = false;
+});
+
+// Formatear RUT
+function formatRut(v) {
+  v = v.replace(/[^0-9kK]/g, '');
+  if (v.length < 2) return v;
+  const b = v.slice(0, -1), d = v.slice(-1).toUpperCase();
+  return b.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + d;
+}
+
+function limpiarRutKey(rut) {
+  return rut.replace(/[^0-9kK]/g, '').replace(/(.+)(.)$/, '$1-$2').replace(/\B(?=(\d{3})+(?!\d))/g, '').replace('-', '').slice(0,-1).replace(/\./g,'') + '-' + rut.replace(/[^0-9kK]/g,'').slice(-1).toUpperCase();
+}
+
+function setAutocompleted(id, value) {
+  const el = document.getElementById(id);
+  el.value = value;
+  el.classList.add('autocompleted');
+  el.classList.remove('manual-edited');
+}
+
+function setEditable(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('autocompleted');
+  el.addEventListener('input', function() {
+    if (this.value.trim()) {
+      this.classList.add('manual-edited');
+      this.classList.remove('autocompleted');
+      datosManual = true;
+      // Mostrar tag manual
+      const tagMap = { nombre: 'tag-nombre', 'ss-cap': 'tag-ss-cap', 'comuna-cap': 'tag-comuna-cap', 'centro-cap': 'tag-centro-cap' };
+      if (tagMap[id]) document.getElementById(tagMap[id]).classList.add('visible');
+    }
+  }, { once: false });
+}
+
+// RUT input — Safari iOS necesita keyup además de input
+const rutEl = document.getElementById('rut');
+function handleRutInput() {
+  const raw = this.value.replace(/[^0-9kK]/g, '');
+  this.value = formatRut(raw);
+  if (raw.length >= 8) {
+    const key = raw.slice(0,-1) + '-' + raw.slice(-1).toUpperCase();
+    const found = DOTACION[key];
+    if (found) {
+      rutEncontrado = true;
+      datosManual = false;
+      document.getElementById('ac-card').classList.add('visible');
+      document.getElementById('rut-not-found').classList.remove('visible');
+      document.getElementById('ac-nombre').textContent = found.nombre;
+      document.getElementById('ac-ss').textContent = found.ss;
+      document.getElementById('ac-comuna').textContent = found.comuna;
+      document.getElementById('ac-centro').textContent = found.centro;
+      setAutocompleted('nombre', found.nombre);
+      setAutocompleted('ss-cap', found.ss);
+      setAutocompleted('comuna-cap', found.comuna);
+      setAutocompleted('centro-cap', found.centro);
+      ['tag-nombre','tag-ss-cap','tag-comuna-cap','tag-centro-cap'].forEach(t => document.getElementById(t).classList.remove('visible'));
+    } else {
+      rutEncontrado = false;
+      document.getElementById('ac-card').classList.remove('visible');
+      document.getElementById('rut-not-found').classList.add('visible');
+      ['nombre','ss-cap','comuna-cap','centro-cap'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = '';
+        el.classList.remove('autocompleted');
+        setEditable(id);
+      });
+    }
+  } else {
+    rutEncontrado = false;
+    document.getElementById('ac-card').classList.remove('visible');
+    document.getElementById('rut-not-found').classList.remove('visible');
+    ['nombre','ss-cap','comuna-cap','centro-cap'].forEach(id => {
+      const el = document.getElementById(id);
+      el.value = '';
+      el.classList.remove('autocompleted', 'manual-edited');
+    });
+  }
+}
+
+// Bind a input + keyup + change para compatibilidad Safari iOS
+['input', 'keyup', 'change'].forEach(evt => rutEl.addEventListener(evt, handleRutInput));
+
+// Permitir edición de campos precargados (corrección)
+['nombre','ss-cap','comuna-cap','centro-cap'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', function() {
+    if (rutEncontrado) {
+      this.classList.remove('autocompleted');
+      this.classList.add('manual-edited');
+      datosManual = true;
+      const tagMap = { nombre: 'tag-nombre', 'ss-cap': 'tag-ss-cap', 'comuna-cap': 'tag-comuna-cap', 'centro-cap': 'tag-centro-cap' };
+      if (tagMap[id]) document.getElementById(tagMap[id]).classList.add('visible');
+    }
+  });
+});
+
+// Toggle lugar
+document.getElementById('mismo-lugar').addEventListener('change', function() {
+  document.getElementById('extra-loc').classList.toggle('visible', !this.checked);
+});
+
+// Reset completo — Safari restaura valores previos y hay que forzar el limpiado
+function resetFormulario() {
+  ['modulo','nivel','convocados','rut','nombre','ss-cap','comuna-cap','centro-cap','email'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fecha').valueAsDate = new Date();
+  document.getElementById('ac-card').classList.remove('visible');
+  document.getElementById('rut-not-found').classList.remove('visible');
+  document.getElementById('alert-missing').classList.remove('visible');
+  ['nombre','ss-cap','comuna-cap','centro-cap'].forEach(id => {
+    document.getElementById(id).classList.remove('autocompleted','manual-edited','error');
+  });
+  rutEncontrado = false;
+  datosManual = false;
+}
+
+// DOMContentLoaded: primer reset
+document.addEventListener('DOMContentLoaded', resetFormulario);
+
+// pageshow: cubre el caso de Safari al volver desde historial
+// Los setTimeout cubren que Safari restaura valores DESPUÉS del evento
+window.addEventListener('pageshow', function() {
+  resetFormulario();
+  setTimeout(resetFormulario, 50);
+  setTimeout(resetFormulario, 300);
+});
+
+// BOTÓN DEMO — compatible Safari iOS
+document.getElementById('btn-demo').addEventListener('click', function() {
+  // Setear RUT y cargar datos directamente sin depender de dispatchEvent
+  rutEl.value = DEMO.rut;
+
+  // Aplicar autocomplete directamente (sin disparar evento)
+  rutEncontrado = true;
+  datosManual = false;
+  document.getElementById('ac-card').classList.add('visible');
+  document.getElementById('rut-not-found').classList.remove('visible');
+  document.getElementById('ac-nombre').textContent = DEMO.nombre;
+  document.getElementById('ac-ss').textContent = DEMO.ss;
+  document.getElementById('ac-comuna').textContent = DEMO.comuna;
+  document.getElementById('ac-centro').textContent = DEMO.centro;
+
+  // Setear campos de texto directamente
+  const camposDemo = {
+    'nombre': DEMO.nombre,
+    'ss-cap': DEMO.ss,
+    'comuna-cap': DEMO.comuna,
+    'centro-cap': DEMO.centro,
+    'email': DEMO.email,
+  };
+  Object.entries(camposDemo).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    el.value = val;
+    el.classList.add('autocompleted');
+    el.classList.remove('manual-edited', 'error');
+  });
+
+  // Limpiar tags manuales
+  ['tag-nombre','tag-ss-cap','tag-comuna-cap','tag-centro-cap'].forEach(t =>
+    document.getElementById(t).classList.remove('visible')
+  );
+
+  // Limpiar errores
+  document.getElementById('alert-missing').classList.remove('visible');
+  document.getElementById('rut-err').classList.remove('visible');
+  rutEl.classList.remove('error');
+});
+
+// VALIDACIÓN
+function validateField(id, errId, condition) {
+  const el = document.getElementById(id);
+  const errEl = document.getElementById(errId);
+  if (!condition) {
+    el.classList.add('error');
+    errEl.classList.add('visible');
+    return false;
+  }
+  el.classList.remove('error');
+  errEl.classList.remove('visible');
+  return true;
+}
+
+function validate() {
+  let ok = true;
+  const rut = document.getElementById('rut').value.replace(/[^0-9kK]/g,'');
+  const email = document.getElementById('email').value;
+  const mismoLugar = document.getElementById('mismo-lugar').checked;
+
+  ok = validateField('rut', 'rut-err', rut.length >= 7) && ok;
+  ok = validateField('nombre', 'nombre-err', document.getElementById('nombre').value.trim().length > 2) && ok;
+  ok = validateField('ss-cap', 'ss-cap-err', document.getElementById('ss-cap').value.trim().length > 1) && ok;
+  ok = validateField('comuna-cap', 'comuna-cap-err', document.getElementById('comuna-cap').value.trim().length > 1) && ok;
+  ok = validateField('centro-cap', 'centro-cap-err', document.getElementById('centro-cap').value.trim().length > 1) && ok;
+  ok = validateField('email', 'email-err', email.includes('@') && email.includes('.')) && ok;
+  ok = validateField('modulo', 'modulo-err', document.getElementById('modulo').value !== '') && ok;
+  ok = validateField('nivel', 'nivel-err', document.getElementById('nivel').value !== '') && ok;
+  ok = validateField('fecha', 'fecha-err', document.getElementById('fecha').value !== '') && ok;
+  ok = validateField('convocados', 'convocados-err', parseInt(document.getElementById('convocados').value) > 0) && ok;
+
+  if (!mismoLugar) {
+    ok = validateField('ss-jornada', 'ss-jornada-err', ssEl.value !== '') && ok;
+    ok = validateField('comuna-jornada', 'comuna-jornada-err', comEl.value !== '') && ok;
+    ok = validateField('centro-jornada', 'centro-jornada-err', cenEl.value !== '') && ok;
+  }
+
+  document.getElementById('alert-missing').classList.toggle('visible', !ok);
+  return ok;
+}
+
+// INICIAR JORNADA
+document.getElementById('btn-iniciar').addEventListener('click', function() {
+  if (!validate()) {
+    // Safari-compatible scroll
+    const alertEl = document.getElementById('alert-missing');
+    const y = alertEl.getBoundingClientRect().top + window.pageYOffset - 80;
+    window.scrollTo(0, y);
+    return;
+  }
+
+  const modulo = document.getElementById('modulo').value;
+  const email = document.getElementById('email').value;
+  const num = (CORRELATIVOS[modulo] || 0) + 1;
+  const id = modulo + '-' + String(num).padStart(3, '0');
+  const qrUrl = 'https://mhgap.minsal.cl/F2?jornada=' + id;
+
+  document.getElementById('result-id').textContent = id;
+  document.getElementById('email-sent-txt').textContent = 'QR enviado a ' + email;
+
+  // Mostrar aviso de datos manuales si corresponde
+  document.getElementById('manual-notice').classList.toggle('visible', datosManual || !rutEncontrado);
+
+  // Generar QR
+  const wrap = document.getElementById('qr-canvas-wrap');
+  wrap.innerHTML = '';
+  new QRCode(wrap, {
+    text: qrUrl,
+    width: 220,
+    height: 220,
+    colorDark: '#00477A',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('result-section').classList.add('visible');
+  window.scrollTo(0, 0);
+  document.getElementById('btn-download-qr').dataset.id = id;
+});
+
+// DESCARGAR QR — compatible Safari iOS
+// Safari no permite .click() programático en links; abrimos en nueva pestaña como fallback
+document.getElementById('btn-download-qr').addEventListener('click', function() {
+  const id = this.dataset.id || 'QR_mhGAP';
+  const canvas = document.getElementById('qr-canvas-wrap').querySelector('canvas');
+  if (!canvas) return;
+
+  const margin = 24, labelH = 40;
+  const c2 = document.createElement('canvas');
+  c2.width = canvas.width + margin * 2;
+  c2.height = canvas.height + margin * 2 + labelH;
+  const ctx = c2.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, c2.width, c2.height);
+  ctx.drawImage(canvas, margin, margin);
+  ctx.fillStyle = '#00477A';
+  ctx.font = 'bold 18px -apple-system, Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Jornada ' + id + ' — mhGAP', c2.width / 2, canvas.height + margin + 28);
+
+  const dataUrl = c2.toDataURL('image/png');
+
+  // Intentar descarga normal
+  const link = document.createElement('a');
+  link.download = 'QR_' + id + '.png';
+  link.href = dataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Fallback Safari: si no descargó, abrir en nueva pestaña para guardar manualmente
+  setTimeout(() => {
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) {
+      window.open(dataUrl, '_blank');
+    }
+  }, 500);
+});
+
+// NUEVA JORNADA
+document.getElementById('btn-nueva').addEventListener('click', function() {
+  document.getElementById('form-section').style.display = '';
+  document.getElementById('result-section').classList.remove('visible');
+  document.getElementById('rut').value = '';
+  document.getElementById('nombre').value = '';
+  document.getElementById('ss-cap').value = '';
+  document.getElementById('comuna-cap').value = '';
+  document.getElementById('centro-cap').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('modulo').value = '';
+  document.getElementById('nivel').value = '';
+  document.getElementById('convocados').value = '';
+  document.getElementById('fecha').valueAsDate = new Date();
+  document.getElementById('ac-card').classList.remove('visible');
+  document.getElementById('rut-not-found').classList.remove('visible');
+  document.getElementById('alert-missing').classList.remove('visible');
+  document.getElementById('qr-canvas-wrap').innerHTML = '';
+  ['nombre','ss-cap','comuna-cap','centro-cap'].forEach(id => {
+    document.getElementById(id).classList.remove('autocompleted', 'manual-edited', 'error');
+  });
+  ['tag-nombre','tag-ss-cap','tag-comuna-cap','tag-centro-cap'].forEach(t => document.getElementById(t).classList.remove('visible'));
+  comEl.innerHTML = '<option value="">Seleccionar SS primero</option>';
+  comEl.disabled = true;
+  cenEl.innerHTML = '<option value="">Seleccionar comuna primero</option>';
+  cenEl.disabled = true;
+  ssEl.value = '';
+  rutEncontrado = false;
+  datosManual = false;
+  window.scrollTo(0, 0);
+});
+</script>
+</body>
+</html>

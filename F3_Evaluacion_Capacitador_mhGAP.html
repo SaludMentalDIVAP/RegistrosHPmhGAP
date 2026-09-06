@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>F3 — Evaluación Capacitador mhGAP</title>
+<style>
+:root {
+  --purple: #5B4A8A;
+  --purple-light: #f0edf8;
+  --purple-dark: #4a3a72;
+  --teal: #0E8A6B;
+  --teal-light: #e8f5f1;
+  --radius: 10px;
+  --border: #e0e0e0;
+  --text: #1a1a1a;
+  --text-secondary: #555;
+  --text-muted: #888;
+  --danger: #c0392b;
+  --danger-bg: #fdf0ee;
+  --success: #0E8A6B;
+  --success-bg: #e8f5f1;
+  --warning: #b7660a;
+  --warning-bg: #fef4e4;
+  --manual-bg: #fff8e1;
+  --manual-border: #f0c040;
+  --star-color: #f0a500;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #f2f4f7;
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 3rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.header {
+  background: var(--purple);
+  color: white;
+  padding: 1.25rem 1.25rem 1.5rem;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+.header h1 { font-size: 18px; font-weight: 600; color: white; line-height: 1.3; }
+.header p { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+.demo-banner {
+  background: var(--warning-bg);
+  border-bottom: 2px solid var(--manual-border);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.demo-banner span { font-size: 13px; color: var(--warning); font-weight: 500; }
+.btn-demo {
+  background: var(--warning);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card {
+  background: white;
+  border-radius: var(--radius);
+  margin: 1rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--purple);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 1rem 1rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.jornada-card {
+  background: var(--purple-light);
+  border: 1.5px solid var(--purple);
+  border-radius: 8px;
+  margin: 0.25rem 1rem 0;
+  padding: 0.75rem 1rem;
+  display: none;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+.jornada-card.visible { display: flex; }
+.jornada-card .jc-note { width: 100%; font-size: 11px; color: var(--purple); font-weight: 600; margin-bottom: 2px; }
+.jc-item { display: flex; flex-direction: column; gap: 2px; }
+.jc-label { font-size: 11px; color: var(--purple); font-weight: 500; }
+.jc-value { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+
+.field {
+  padding: 0.75rem 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.field:last-child { padding-bottom: 1rem; }
+.field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.field label .req { color: var(--purple); }
+.field label .manual-tag {
+  font-size: 10px;
+  background: var(--manual-border);
+  color: #7a5000;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  display: none;
+}
+.field label .manual-tag.visible { display: inline-block; }
+
+.field input, .field select {
+  height: 48px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fafafa;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-color: #fafafa;
+  padding-right: 36px;
+}
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: var(--purple);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(91,74,138,0.1);
+}
+.field input.autocompleted {
+  border-color: var(--teal);
+  background: var(--teal-light);
+  color: #0a5c49;
+}
+.field input.manual-edited {
+  border-color: var(--manual-border);
+  background: var(--manual-bg);
+}
+.field input.error, .field select.error {
+  border-color: var(--danger) !important;
+  background: var(--danger-bg) !important;
+}
+
+.ac-card {
+  display: none;
+  margin: 0.25rem 1rem 0.25rem;
+  background: var(--teal-light);
+  border: 1.5px solid var(--teal);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  gap: 10px 20px;
+  flex-wrap: wrap;
+}
+.ac-card.visible { display: flex; }
+.ac-note { width: 100%; font-size: 11px; color: var(--teal); font-weight: 600; margin-bottom: 2px; }
+.ac-item { display: flex; flex-direction: column; gap: 2px; }
+.ac-label { font-size: 11px; color: var(--teal); font-weight: 500; }
+.ac-value { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+
+.rut-not-found {
+  display: none;
+  margin: 0.25rem 1rem 0.25rem;
+  background: var(--warning-bg);
+  border: 1.5px solid var(--manual-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  color: var(--warning);
+}
+.rut-not-found.visible { display: block; }
+
+.stars-group {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f5f5f5;
+}
+.stars-group:last-child { border-bottom: none; }
+.stars-question {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.stars-question .req { color: var(--purple); }
+.stars-row { display: flex; gap: 8px; align-items: center; }
+.star-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  color: #ddd;
+  transition: color 0.1s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.star-btn.active { color: var(--star-color); }
+.star-btn:active { transform: scale(1.2); }
+.stars-label { font-size: 12px; color: var(--text-muted); margin-left: 4px; min-width: 60px; }
+.stars-err { font-size: 12px; color: var(--danger); display: none; margin-top: 4px; }
+.stars-err.visible { display: block; }
+
+.field textarea {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fafafa;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+.field textarea:focus {
+  outline: none;
+  border-color: var(--purple);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(91,74,138,0.1);
+}
+.field textarea.error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+.err { font-size: 12px; color: var(--danger); display: none; padding: 3px 2px 0; }
+.err.visible { display: block; }
+
+.alert-missing {
+  display: none;
+  margin: 0 1rem 0.5rem;
+  background: var(--danger-bg);
+  border: 1.5px solid var(--danger);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  color: var(--danger);
+  font-weight: 500;
+}
+.alert-missing.visible { display: block; }
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--purple);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: calc(100% - 2rem);
+  margin: 0.5rem 1rem 1rem;
+  min-height: 56px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-primary:active { background: var(--purple-dark); transform: scale(0.98); }
+.btn-sub { font-size: 12px; font-weight: 400; opacity: 0.78; }
+
+.result-section { display: none; }
+.result-section.visible { display: block; }
+.result-header {
+  background: var(--purple);
+  color: white;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.result-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+.result-header h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.result-header p { font-size: 14px; opacity: 0.85; line-height: 1.5; }
+
+.result-card {
+  background: white;
+  border-radius: var(--radius);
+  margin: 1rem;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 14px;
+}
+.result-row:last-child { border-bottom: none; }
+.result-row .rl { color: var(--text-muted); }
+.result-row .rv { font-weight: 600; color: var(--text); text-align: right; max-width: 60%; }
+
+.manual-notice {
+  display: none;
+  background: var(--manual-bg);
+  border: 1.5px solid var(--manual-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  color: var(--warning);
+  margin: 0 1rem 1rem;
+}
+.manual-notice.visible { display: block; }
+.manual-notice strong { display: block; margin-bottom: 4px; }
+
+.id-badge-sm {
+  display: inline-block;
+  background: white;
+  color: var(--purple);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.3rem 1rem;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-badge">F3</span>
+  <h1>Evaluación del capacitador</h1>
+  <p>HP mhGAP — División de Atención Primaria MINSAL</p>
+</div>
+
+<div class="demo-banner">
+  <span>🧪 Modo de prueba activo</span>
+  <button class="btn-demo" id="btn-demo">Cargar capacitador de prueba</button>
+</div>
+
+<div id="form-section">
+
+  <!-- JORNADA -->
+  <div class="card">
+    <div class="section-title">Jornada</div>
+    <div class="field">
+      <label>Módulo de la jornada <span class="req">*</span></label>
+      <select id="jornada-modulo" autocomplete="off" name="jmod_f3x">
+        <option value="">Seleccionar módulo...</option>
+        <option value="APE">APE — Prácticas Esenciales</option>
+        <option value="DEP">DEP — Depresión</option>
+        <option value="PSI">PSI — Psicosis</option>
+        <option value="EPI">EPI — Epilepsia</option>
+        <option value="MCON">MCON — Niño y Adolescente</option>
+        <option value="DEM">DEM — Demencia</option>
+        <option value="SUS">SUS — Consumo de Sustancias</option>
+        <option value="SUI">SUI — Autolesión/Suicidio</option>
+        <option value="OTR">OTR — Otros padecimientos</option>
+        <option value="SEN">SEN — Sensibilización</option>
+        <option value="MAC">MAC — Mapeo actores claves</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Número de jornada <span class="req">*</span></label>
+      <input type="number" id="jornada-num" placeholder="Ej: 48" min="1" max="999" inputmode="numeric" autocomplete="off" name="jnum_f3p">
+      <span class="err" id="jornada-err">Selecciona el módulo e ingresa el número de jornada</span>
+      <span style="font-size:12px; color:var(--text-muted); margin-top:2px;">Este número fue generado al abrir la jornada en F1</span>
+    </div>
+
+    <div class="jornada-card" id="jornada-card">
+      <div class="jc-note">✓ Jornada encontrada</div>
+      <div class="jc-item"><span class="jc-label">Módulo</span><span class="jc-value" id="jc-modulo">—</span></div>
+      <div class="jc-item"><span class="jc-label">Nivel</span><span class="jc-value" id="jc-nivel">—</span></div>
+      <div class="jc-item"><span class="jc-label">Fecha</span><span class="jc-value" id="jc-fecha">—</span></div>
+      <div class="jc-item"><span class="jc-label">Lugar</span><span class="jc-value" id="jc-lugar">—</span></div>
+      <div class="jc-item"><span class="jc-label">Convocados</span><span class="jc-value" id="jc-convocados">—</span></div>
+    </div>
+  </div>
+
+  <!-- CAPACITADOR -->
+  <div class="card">
+    <div class="section-title">Capacitador</div>
+
+    <div class="field">
+      <label>RUT <span class="req">*</span></label>
+      <input type="text" id="rut" placeholder="12.345.678-9" maxlength="12" inputmode="numeric" autocomplete="off" autocorrect="off" name="rut_f3m">
+      <span class="err" id="rut-err">Ingresa un RUT válido</span>
+    </div>
+
+    <div class="ac-card" id="ac-card">
+      <div class="ac-note">✓ Datos encontrados en la base de dotación</div>
+      <div class="ac-item"><span class="ac-label">Nombre</span><span class="ac-value" id="ac-nombre">—</span></div>
+      <div class="ac-item"><span class="ac-label">Servicio de Salud</span><span class="ac-value" id="ac-ss">—</span></div>
+      <div class="ac-item"><span class="ac-label">Centro de Salud</span><span class="ac-value" id="ac-centro">—</span></div>
+      <div class="ac-item"><span class="ac-label">Profesión</span><span class="ac-value" id="ac-profesion">—</span></div>
+    </div>
+
+    <div class="rut-not-found" id="rut-not-found">
+      ⚠️ RUT no encontrado en la base de dotación. Por favor completa tus datos manualmente.
+    </div>
+
+    <div class="field">
+      <label>Nombre completo <span class="req">*</span>
+        <span class="manual-tag" id="tag-nombre">Ingresado manualmente</span>
+      </label>
+      <input type="text" id="nombre" placeholder="Nombre y apellidos" autocomplete="off" autocorrect="off" autocapitalize="off" name="nom_f3q">
+      <span class="err" id="nombre-err">Ingresa tu nombre completo</span>
+    </div>
+
+    <div class="field">
+      <label>Servicio de Salud <span class="req">*</span>
+        <span class="manual-tag" id="tag-ss">Ingresado manualmente</span>
+      </label>
+      <input type="text" id="ss" placeholder="Ej: Metropolitano Sur" autocomplete="off" name="ss_f3k">
+      <span class="err" id="ss-err">Ingresa el Servicio de Salud</span>
+    </div>
+
+    <div class="field">
+      <label>Centro de Salud <span class="req">*</span>
+        <span class="manual-tag" id="tag-centro">Ingresado manualmente</span>
+      </label>
+      <input type="text" id="centro" placeholder="Nombre del establecimiento" autocomplete="off" name="cen_f3j">
+      <span class="err" id="centro-err">Ingresa el centro de salud</span>
+    </div>
+
+    <div class="field">
+      <label>Profesión / Estamento <span class="req">*</span>
+        <span class="manual-tag" id="tag-profesion">Ingresado manualmente</span>
+      </label>
+      <select id="profesion" autocomplete="off" name="prof_f3n">
+        <option value="">Seleccionar...</option>
+        <option>Administrativa/o</option>
+        <option>Auxiliar Paramédico</option>
+        <option>Enfermera/o</option>
+        <option>Fonoaudióloga/o</option>
+        <option>Kinesióloga/o</option>
+        <option>Matrón/a</option>
+        <option>Médica/o</option>
+        <option>Nutricionista</option>
+        <option>Odontóloga/o</option>
+        <option>Psicóloga/o</option>
+        <option>Químico Farmacéutico</option>
+        <option>Técnico en Enfermería</option>
+        <option>Técnico en Rehabilitación</option>
+        <option>Tecnóloga/o Médica/o</option>
+        <option>Terapeuta Ocupacional</option>
+        <option>Trabajador/a Social</option>
+        <option>Otra/o</option>
+      </select>
+      <span class="err" id="profesion-err">Selecciona tu profesión</span>
+    </div>
+  </div>
+
+  <!-- EVALUACIÓN ESTRELLAS -->
+  <div class="card">
+    <div class="section-title">Calificación del módulo</div>
+    <p style="font-size:13px; color:var(--text-muted); padding:0.75rem 1rem 0.25rem; line-height:1.5;">
+      En cuanto a la experiencia de entrenamiento realizada por usted, por favor califica lo siguiente:<br>
+      <strong style="color:var(--text-secondary)">⭐ Muy baja &nbsp;·&nbsp; ⭐⭐ Baja &nbsp;·&nbsp; ⭐⭐⭐ Media &nbsp;·&nbsp; ⭐⭐⭐⭐ Alta &nbsp;·&nbsp; ⭐⭐⭐⭐⭐ Muy alta</strong>
+    </p>
+    <div id="stars-container"></div>
+  </div>
+
+  <!-- PREGUNTAS ABIERTAS -->
+  <div class="card">
+    <div class="section-title">Preguntas abiertas</div>
+
+    <div class="field">
+      <label>¿Qué dificultades encontró durante el módulo? <span class="req">*</span></label>
+      <textarea id="dificultades" placeholder="Describe las dificultades encontradas..." autocomplete="off" name="dif_f3r"></textarea>
+      <span class="err" id="dificultades-err">Por favor responde esta pregunta</span>
+    </div>
+
+    <div class="field">
+      <label>¿Qué estrategias utilizó durante el módulo? <span class="req">*</span></label>
+      <textarea id="estrategias" placeholder="Describe las estrategias utilizadas..." autocomplete="off" name="est_f3s"></textarea>
+      <span class="err" id="estrategias-err">Por favor responde esta pregunta</span>
+    </div>
+
+    <div class="field">
+      <label>¿Qué aprendizajes de esta formación serían de utilidad o necesarios de reforzar en los próximos módulos? <span class="req">*</span></label>
+      <textarea id="aprendizajes" placeholder="Describe los aprendizajes a reforzar..." autocomplete="off" name="apr_f3t"></textarea>
+      <span class="err" id="aprendizajes-err">Por favor responde esta pregunta</span>
+    </div>
+  </div>
+
+  <div class="alert-missing" id="alert-missing">
+    Por favor completa todos los campos obligatorios antes de continuar.
+  </div>
+
+  <button class="btn-primary" id="btn-enviar">
+    Enviar evaluación
+    <span class="btn-sub">Tu evaluación quedará registrada en el sistema</span>
+  </button>
+
+</div>
+
+<!-- RESULTADO -->
+<div class="result-section" id="result-section">
+  <div class="result-header">
+    <div class="result-icon">✅</div>
+    <h2>¡Evaluación enviada!</h2>
+    <p>Tu evaluación ha quedado registrada<br>en la jornada <span id="result-jornada-id" class="id-badge-sm">APE-048</span></p>
+  </div>
+
+  <div class="result-card">
+    <div class="result-row"><span class="rl">Capacitador</span><span class="rv" id="res-nombre">—</span></div>
+    <div class="result-row"><span class="rl">Módulo</span><span class="rv" id="res-modulo">—</span></div>
+    <div class="result-row"><span class="rl">Fecha</span><span class="rv" id="res-fecha">—</span></div>
+    <div class="result-row"><span class="rl">Centro de Salud</span><span class="rv" id="res-centro">—</span></div>
+  </div>
+
+  <div style="background:#f2f4f7; border-radius:8px; margin:0 1rem 1rem; padding:0.85rem 1rem; display:flex; align-items:flex-start; gap:10px;">
+    <span style="font-size:1.4rem; line-height:1;">📸</span>
+    <span style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+      <strong style="color:var(--text); display:block; margin-bottom:2px;">Guarda tu comprobante</strong>
+      Te sugerimos tomar un pantallazo de esta pantalla como respaldo de tu evaluación.
+    </span>
+  </div>
+
+  <div class="manual-notice" id="manual-notice">
+    <strong>⚠️ Datos ingresados manualmente</strong>
+    Este registro incluye datos no encontrados en la base de dotación. Quedarán marcados para incorporarse a la base automáticamente.
+  </div>
+</div>
+
+<script>
+const DEMO = {
+  rut: '12.345.678-9',
+  nombre: 'María González Pino',
+  ss: 'Metropolitano Sur',
+  centro: 'Centro de Salud Familiar El Roble',
+  profesion: 'Enfermera/o',
+};
+
+const DOTACION = {
+  '12345678-9': { nombre:'María González Pino', ss:'Metropolitano Sur', centro:'Centro de Salud Familiar El Roble', profesion:'Enfermera/o' },
+  '11111111-1': { nombre:'Carlos Muñoz Reyes', ss:'Metropolitano Norte', centro:'Centro de Salud Familiar Recoleta', profesion:'Médica/o' },
+  '22222222-2': { nombre:'Ana Pérez Soto', ss:'Valparaíso San Antonio', centro:'Centro de Salud Familiar Barón', profesion:'Psicóloga/o' },
+};
+
+const JORNADAS = {
+  'APE-025': { modulo:'APE — Prácticas Esenciales', nivel:'General', fecha:'04/09/2026', lugar:'CESFAM El Roble, La Pintana', convocados:'25' },
+  'APE-048': { modulo:'APE — Prácticas Esenciales', nivel:'General', fecha:'04/09/2026', lugar:'CESFAM El Roble, La Pintana', convocados:'30' },
+  'DEP-024': { modulo:'DEP — Depresión', nivel:'Intermedia', fecha:'03/09/2026', lugar:'CESFAM Recoleta, Recoleta', convocados:'20' },
+  'PSI-013': { modulo:'PSI — Psicosis', nivel:'Avanzada', fecha:'02/09/2026', lugar:'CESFAM Barón, Valparaíso', convocados:'18' },
+};
+
+const ITEMS_ESTRELLAS = [
+  { id: 's1', label: '1. ¿Logró entregar en esta formación los contenidos planificados?' },
+  { id: 's2', label: '2. Evalúe el involucramiento de los participantes en este módulo' },
+  { id: 's3', label: '3. ¿Se cumplieron los objetivos propuestos para este módulo?' },
+];
+
+const starsValues = {};
+const starLabels = ['','Muy baja','Baja','Media','Alta','Muy alta'];
+
+const starsContainer = document.getElementById('stars-container');
+ITEMS_ESTRELLAS.forEach(item => {
+  starsValues[item.id] = 0;
+  const div = document.createElement('div');
+  div.className = 'stars-group';
+  div.innerHTML = `
+    <div class="stars-question">${item.label} <span class="req">*</span></div>
+    <div class="stars-row" id="row-${item.id}">
+      ${[1,2,3,4,5].map(n => `<button type="button" class="star-btn" data-id="${item.id}" data-val="${n}" aria-label="${n} estrella${n>1?'s':''}">★</button>`).join('')}
+      <span class="stars-label" id="lbl-${item.id}">Sin calificar</span>
+    </div>
+    <div class="stars-err" id="err-${item.id}">Selecciona una calificación</div>
+  `;
+  starsContainer.appendChild(div);
+});
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.star-btn');
+  if (!btn) return;
+  const id = btn.dataset.id, val = parseInt(btn.dataset.val);
+  starsValues[id] = val;
+  document.querySelectorAll(`.star-btn[data-id="${id}"]`).forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.val) <= val);
+  });
+  document.getElementById(`lbl-${id}`).textContent = starLabels[val];
+  document.getElementById(`err-${id}`).classList.remove('visible');
+});
+
+const jornadaModuloEl = document.getElementById('jornada-modulo');
+const jornadaNumEl = document.getElementById('jornada-num');
+
+function getJornadaKey() {
+  const mod = jornadaModuloEl.value.trim();
+  const num = jornadaNumEl.value.trim();
+  if (!mod || !num) return null;
+  return mod + '-' + String(parseInt(num)).padStart(3, '0');
+}
+
+function buscarJornada() {
+  const key = getJornadaKey();
+  const card = document.getElementById('jornada-card');
+  if (!key) { card.classList.remove('visible'); return; }
+  const jornada = JORNADAS[key];
+  if (jornada) {
+    card.classList.add('visible');
+    document.getElementById('jc-modulo').textContent = jornada.modulo;
+    document.getElementById('jc-nivel').textContent = jornada.nivel;
+    document.getElementById('jc-fecha').textContent = jornada.fecha;
+    document.getElementById('jc-lugar').textContent = jornada.lugar;
+    document.getElementById('jc-convocados').textContent = jornada.convocados + ' personas';
+    document.getElementById('jornada-err').classList.remove('visible');
+    jornadaModuloEl.classList.remove('error');
+    jornadaNumEl.classList.remove('error');
+  } else {
+    card.classList.remove('visible');
+  }
+}
+
+['change'].forEach(evt => jornadaModuloEl.addEventListener(evt, buscarJornada));
+['input','keyup','change'].forEach(evt => jornadaNumEl.addEventListener(evt, buscarJornada));
+
+let rutEncontrado = false, datosManual = false;
+
+function formatRut(v) {
+  v = v.replace(/[^0-9kK]/g, '');
+  if (v.length < 2) return v;
+  const b = v.slice(0,-1), d = v.slice(-1).toUpperCase();
+  return b.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + d;
+}
+
+function setAutocompleted(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = value;
+  el.classList.add('autocompleted');
+  el.classList.remove('manual-edited','error');
+}
+
+function setSelectValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (let o of el.options) {
+    if (o.value === value || o.text === value) { el.value = o.value; break; }
+  }
+}
+
+function handleRutInput() {
+  const raw = this.value.replace(/[^0-9kK]/g, '');
+  this.value = formatRut(raw);
+  if (raw.length >= 8) {
+    const key = raw.slice(0,-1) + '-' + raw.slice(-1).toUpperCase();
+    const found = DOTACION[key];
+    if (found) {
+      rutEncontrado = true; datosManual = false;
+      document.getElementById('ac-card').classList.add('visible');
+      document.getElementById('rut-not-found').classList.remove('visible');
+      document.getElementById('ac-nombre').textContent = found.nombre;
+      document.getElementById('ac-ss').textContent = found.ss;
+      document.getElementById('ac-centro').textContent = found.centro;
+      document.getElementById('ac-profesion').textContent = found.profesion;
+      setAutocompleted('nombre', found.nombre);
+      setAutocompleted('ss', found.ss);
+      setAutocompleted('centro', found.centro);
+      setSelectValue('profesion', found.profesion);
+      ['tag-nombre','tag-ss','tag-centro','tag-profesion'].forEach(t => document.getElementById(t).classList.remove('visible'));
+    } else {
+      rutEncontrado = false;
+      document.getElementById('ac-card').classList.remove('visible');
+      document.getElementById('rut-not-found').classList.add('visible');
+      ['nombre','ss','centro'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = ''; el.classList.remove('autocompleted');
+      });
+      document.getElementById('profesion').value = '';
+    }
+  } else {
+    rutEncontrado = false;
+    document.getElementById('ac-card').classList.remove('visible');
+    document.getElementById('rut-not-found').classList.remove('visible');
+    ['nombre','ss','centro'].forEach(id => document.getElementById(id).classList.remove('autocompleted','manual-edited'));
+  }
+}
+
+const rutEl = document.getElementById('rut');
+['input','keyup','change'].forEach(evt => rutEl.addEventListener(evt, handleRutInput));
+
+['nombre','ss','centro'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function() {
+    if (rutEncontrado) {
+      this.classList.remove('autocompleted');
+      this.classList.add('manual-edited');
+      datosManual = true;
+      const tagMap = {nombre:'tag-nombre', ss:'tag-ss', centro:'tag-centro'};
+      document.getElementById(tagMap[id]).classList.add('visible');
+    }
+  });
+});
+
+document.getElementById('btn-demo').addEventListener('click', function() {
+  rutEl.value = DEMO.rut;
+  rutEncontrado = true; datosManual = false;
+  document.getElementById('ac-card').classList.add('visible');
+  document.getElementById('rut-not-found').classList.remove('visible');
+  document.getElementById('ac-nombre').textContent = DEMO.nombre;
+  document.getElementById('ac-ss').textContent = DEMO.ss;
+  document.getElementById('ac-centro').textContent = DEMO.centro;
+  document.getElementById('ac-profesion').textContent = DEMO.profesion;
+  setAutocompleted('nombre', DEMO.nombre);
+  setAutocompleted('ss', DEMO.ss);
+  setAutocompleted('centro', DEMO.centro);
+  setSelectValue('profesion', DEMO.profesion);
+  ['tag-nombre','tag-ss','tag-centro','tag-profesion'].forEach(t => document.getElementById(t).classList.remove('visible'));
+  document.getElementById('rut-err').classList.remove('visible');
+  rutEl.classList.remove('error');
+});
+
+function validateField(id, errId, condition) {
+  const el = document.getElementById(id);
+  const errEl = document.getElementById(errId);
+  if (!condition) { el.classList.add('error'); errEl.classList.add('visible'); return false; }
+  el.classList.remove('error'); errEl.classList.remove('visible'); return true;
+}
+
+function validate() {
+  let ok = true;
+  const jornadaKey = getJornadaKey();
+  const jornadaValida = jornadaKey && (JORNADAS[jornadaKey] || (jornadaModuloEl.value && jornadaNumEl.value));
+  if (!jornadaValida) {
+    jornadaModuloEl.classList.add('error');
+    jornadaNumEl.classList.add('error');
+    document.getElementById('jornada-err').classList.add('visible');
+    ok = false;
+  } else {
+    jornadaModuloEl.classList.remove('error');
+    jornadaNumEl.classList.remove('error');
+    document.getElementById('jornada-err').classList.remove('visible');
+  }
+
+  ok = validateField('rut','rut-err', document.getElementById('rut').value.replace(/[^0-9kK]/g,'').length >= 7) && ok;
+  ok = validateField('nombre','nombre-err', document.getElementById('nombre').value.trim().length > 2) && ok;
+  ok = validateField('ss','ss-err', document.getElementById('ss').value.trim().length > 1) && ok;
+  ok = validateField('centro','centro-err', document.getElementById('centro').value.trim().length > 1) && ok;
+  ok = validateField('profesion','profesion-err', document.getElementById('profesion').value !== '') && ok;
+
+  ITEMS_ESTRELLAS.forEach(item => {
+    if (starsValues[item.id] === 0) {
+      document.getElementById(`err-${item.id}`).classList.add('visible');
+      ok = false;
+    }
+  });
+
+  ok = validateField('dificultades','dificultades-err', document.getElementById('dificultades').value.trim().length > 2) && ok;
+  ok = validateField('estrategias','estrategias-err', document.getElementById('estrategias').value.trim().length > 2) && ok;
+  ok = validateField('aprendizajes','aprendizajes-err', document.getElementById('aprendizajes').value.trim().length > 2) && ok;
+
+  document.getElementById('alert-missing').classList.toggle('visible', !ok);
+  return ok;
+}
+
+document.getElementById('btn-enviar').addEventListener('click', function() {
+  if (!validate()) {
+    const alertEl = document.getElementById('alert-missing');
+    const y = alertEl.getBoundingClientRect().top + window.pageYOffset - 80;
+    window.scrollTo(0, y);
+    return;
+  }
+  const jornadaKey = getJornadaKey();
+  const jornada = JORNADAS[jornadaKey] || { modulo: jornadaModuloEl.options[jornadaModuloEl.selectedIndex].text, fecha:'—' };
+  document.getElementById('result-jornada-id').textContent = jornadaKey;
+  document.getElementById('res-nombre').textContent = document.getElementById('nombre').value;
+  document.getElementById('res-modulo').textContent = jornada.modulo;
+  document.getElementById('res-fecha').textContent = jornada.fecha;
+  document.getElementById('res-centro').textContent = document.getElementById('centro').value;
+  document.getElementById('manual-notice').classList.toggle('visible', datosManual || !rutEncontrado);
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('result-section').classList.add('visible');
+  window.scrollTo(0, 0);
+});
+
+function resetFormulario() {
+  ['jornada-num','rut','nombre','ss','centro','dificultades','estrategias','aprendizajes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('profesion').value = '';
+  document.getElementById('jornada-modulo').value = '';
+  document.getElementById('ac-card').classList.remove('visible');
+  document.getElementById('rut-not-found').classList.remove('visible');
+  document.getElementById('jornada-card').classList.remove('visible');
+  document.getElementById('alert-missing').classList.remove('visible');
+  ITEMS_ESTRELLAS.forEach(item => {
+    starsValues[item.id] = 0;
+    document.querySelectorAll(`.star-btn[data-id="${item.id}"]`).forEach(b => b.classList.remove('active'));
+    document.getElementById(`lbl-${item.id}`).textContent = 'Sin calificar';
+    document.getElementById(`err-${item.id}`).classList.remove('visible');
+  });
+  ['nombre','ss','centro'].forEach(id => document.getElementById(id).classList.remove('autocompleted','manual-edited','error'));
+  ['tag-nombre','tag-ss','tag-centro','tag-profesion'].forEach(t => document.getElementById(t).classList.remove('visible'));
+  rutEncontrado = false; datosManual = false;
+}
+
+document.addEventListener('DOMContentLoaded', resetFormulario);
+window.addEventListener('pageshow', function() {
+  resetFormulario();
+  setTimeout(resetFormulario, 50);
+  setTimeout(resetFormulario, 300);
+});
+
+window.addEventListener('DOMContentLoaded', function() {
+  const params = new URLSearchParams(window.location.search);
+  const jid = params.get('jornada');
+  if (jid) {
+    const match = jid.toUpperCase().match(/^([A-Z]+)-(\d+)$/);
+    if (match) {
+      jornadaModuloEl.value = match[1];
+      jornadaNumEl.value = parseInt(match[2]).toString();
+      buscarJornada();
+    }
+  }
+});
+</script>
+</body>
+</html>

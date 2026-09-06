@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>F4 — Cierre de Jornada mhGAP</title>
+<style>
+:root {
+  --orange: #C4621D;
+  --orange-dark: #a34f16;
+  --orange-light: #fdf0e6;
+  --teal: #0E8A6B;
+  --teal-light: #e8f5f1;
+  --radius: 10px;
+  --border: #e0e0e0;
+  --text: #1a1a1a;
+  --text-secondary: #555;
+  --text-muted: #888;
+  --danger: #c0392b;
+  --danger-bg: #fdf0ee;
+  --warning: #b7660a;
+  --warning-bg: #fef4e4;
+  --manual-border: #f0c040;
+  --success-bg: #e8f5f1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #f2f4f7;
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 3rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.header {
+  background: var(--orange);
+  color: white;
+  padding: 1.25rem 1.25rem 1.5rem;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+.header h1 { font-size: 18px; font-weight: 600; color: white; line-height: 1.3; }
+.header p { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+.demo-banner {
+  background: var(--warning-bg);
+  border-bottom: 2px solid var(--manual-border);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.demo-banner span { font-size: 13px; color: var(--warning); font-weight: 500; }
+.btn-demo {
+  background: var(--warning);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card {
+  background: white;
+  border-radius: var(--radius);
+  margin: 1rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--orange);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 1rem 1rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.jornada-card {
+  background: var(--orange-light);
+  border: 1.5px solid var(--orange);
+  border-radius: 8px;
+  margin: 0.25rem 1rem 0.5rem;
+  padding: 0.75rem 1rem;
+  display: none;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+.jornada-card.visible { display: flex; }
+.jornada-card .jc-note { width: 100%; font-size: 11px; color: var(--orange); font-weight: 600; margin-bottom: 2px; }
+.jc-item { display: flex; flex-direction: column; gap: 2px; }
+.jc-label { font-size: 11px; color: var(--orange); font-weight: 500; }
+.jc-value { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+
+.field {
+  padding: 0.75rem 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.field:last-child { padding-bottom: 1rem; }
+.field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.field label .req { color: var(--orange); }
+
+.field input, .field select {
+  height: 48px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fafafa;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-color: #fafafa;
+  padding-right: 36px;
+}
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: var(--orange);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(196,98,29,0.1);
+}
+.field input.error, .field select.error {
+  border-color: var(--danger) !important;
+  background: var(--danger-bg) !important;
+}
+
+/* UPLOAD AREA */
+.upload-area {
+  margin: 0 1rem 0;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: #fafafa;
+  position: relative;
+}
+.upload-area:hover, .upload-area.drag-over {
+  border-color: var(--orange);
+  background: var(--orange-light);
+}
+.upload-area.has-file {
+  border-color: var(--teal);
+  background: var(--teal-light);
+  border-style: solid;
+}
+.upload-area input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.upload-icon { font-size: 2rem; margin-bottom: 6px; }
+.upload-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; }
+.upload-sub { font-size: 12px; color: var(--text-muted); }
+.upload-ok { font-size: 13px; font-weight: 600; color: var(--teal); display: none; }
+.upload-area.has-file .upload-ok { display: block; }
+.upload-area.has-file .upload-default { display: none; }
+.upload-err { font-size: 12px; color: var(--danger); display: none; padding: 4px 0 0; text-align: left; margin: 0 1rem; }
+.upload-err.visible { display: block; }
+
+/* FOTOS */
+.fotos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0 1rem 1rem;
+}
+.foto-area {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 1rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: #fafafa;
+  position: relative;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.foto-area:hover, .foto-area.drag-over {
+  border-color: var(--orange);
+  background: var(--orange-light);
+}
+.foto-area.has-file {
+  border-color: var(--teal);
+  background: var(--teal-light);
+  border-style: solid;
+}
+.foto-area input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.foto-icon { font-size: 1.75rem; }
+.foto-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.foto-sub { font-size: 11px; color: var(--text-muted); }
+.foto-ok { font-size: 12px; font-weight: 600; color: var(--teal); display: none; }
+.foto-area.has-file .foto-ok { display: block; }
+.foto-area.has-file .foto-default { display: none; }
+.fotos-err { font-size: 12px; color: var(--danger); display: none; padding: 0 0 0.5rem; margin: -0.5rem 1rem 0; }
+.fotos-err.visible { display: block; }
+
+/* INDICADORES */
+.indicadores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0.75rem 1rem 1rem;
+}
+.indicador {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  border: 1.5px solid var(--border);
+  transition: all 0.2s;
+}
+.indicador.activo {
+  background: var(--orange-light);
+  border-color: var(--orange);
+}
+.ind-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+.ind-valor { font-size: 1.6rem; font-weight: 700; color: var(--text-muted); line-height: 1; }
+.indicador.activo .ind-valor { color: var(--orange); }
+.ind-desc { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+.err { font-size: 12px; color: var(--danger); display: none; padding: 3px 2px 0; }
+.err.visible { display: block; }
+
+.alert-missing {
+  display: none;
+  margin: 0 1rem 0.5rem;
+  background: var(--danger-bg);
+  border: 1.5px solid var(--danger);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  color: var(--danger);
+  font-weight: 500;
+}
+.alert-missing.visible { display: block; }
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--orange);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 1rem 1.5rem;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: calc(100% - 2rem);
+  margin: 0.5rem 1rem 1rem;
+  min-height: 56px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btn-primary:active { background: var(--orange-dark); transform: scale(0.98); }
+.btn-sub { font-size: 12px; font-weight: 400; opacity: 0.78; }
+
+.result-section { display: none; }
+.result-section.visible { display: block; }
+.result-header {
+  background: var(--orange);
+  color: white;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.result-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+.result-header h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.result-header p { font-size: 14px; opacity: 0.85; line-height: 1.5; }
+
+.result-card {
+  background: white;
+  border-radius: var(--radius);
+  margin: 1rem;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 14px;
+}
+.result-row:last-child { border-bottom: none; }
+.result-row .rl { color: var(--text-muted); }
+.result-row .rv { font-weight: 600; color: var(--text); text-align: right; }
+
+.indicadores-result {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0 1rem 1rem;
+}
+.ind-result {
+  background: var(--orange-light);
+  border: 1.5px solid var(--orange);
+  border-radius: 10px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+}
+.ind-result .ind-label { font-size: 11px; color: var(--orange); font-weight: 600; margin-bottom: 6px; }
+.ind-result .ind-valor { font-size: 2rem; font-weight: 700; color: var(--orange); line-height: 1; }
+.ind-result .ind-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.id-badge-sm {
+  display: inline-block;
+  background: white;
+  color: var(--orange);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.3rem 1rem;
+  border-radius: 8px;
+  letter-spacing: 0.05em;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-badge">F4</span>
+  <h1>Cierre de jornada</h1>
+  <p>HP mhGAP — División de Atención Primaria MINSAL</p>
+</div>
+
+<div class="demo-banner">
+  <span>🧪 Modo de prueba activo</span>
+  <button class="btn-demo" id="btn-demo">Cargar jornada de prueba</button>
+</div>
+
+<div id="form-section">
+
+  <!-- JORNADA -->
+  <div class="card">
+    <div class="section-title">Identificación de jornada</div>
+    <div class="field">
+      <label>Módulo de la jornada <span class="req">*</span></label>
+      <select id="jornada-modulo" autocomplete="off" name="jmod_f4x">
+        <option value="">Seleccionar módulo...</option>
+        <option value="APE">APE — Prácticas Esenciales</option>
+        <option value="DEP">DEP — Depresión</option>
+        <option value="PSI">PSI — Psicosis</option>
+        <option value="EPI">EPI — Epilepsia</option>
+        <option value="MCON">MCON — Niño y Adolescente</option>
+        <option value="DEM">DEM — Demencia</option>
+        <option value="SUS">SUS — Consumo de Sustancias</option>
+        <option value="SUI">SUI — Autolesión/Suicidio</option>
+        <option value="OTR">OTR — Otros padecimientos</option>
+        <option value="SEN">SEN — Sensibilización</option>
+        <option value="MAC">MAC — Mapeo actores claves</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Número de jornada <span class="req">*</span></label>
+      <input type="number" id="jornada-num" placeholder="Ej: 48" min="1" max="999" inputmode="numeric" autocomplete="off" name="jnum_f4p">
+      <span class="err" id="jornada-err">Selecciona el módulo e ingresa el número de jornada</span>
+      <span style="font-size:12px; color:var(--text-muted); margin-top:2px;">Este número fue generado al abrir la jornada en F1</span>
+    </div>
+
+    <div class="jornada-card" id="jornada-card">
+      <div class="jc-note">✓ Jornada encontrada</div>
+      <div class="jc-item"><span class="jc-label">Módulo</span><span class="jc-value" id="jc-modulo">—</span></div>
+      <div class="jc-item"><span class="jc-label">Nivel</span><span class="jc-value" id="jc-nivel">—</span></div>
+      <div class="jc-item"><span class="jc-label">Fecha</span><span class="jc-value" id="jc-fecha">—</span></div>
+      <div class="jc-item"><span class="jc-label">Lugar</span><span class="jc-value" id="jc-lugar">—</span></div>
+      <div class="jc-item"><span class="jc-label">Convocados</span><span class="jc-value" id="jc-convocados">—</span></div>
+    </div>
+  </div>
+
+  <!-- ASISTENTES -->
+  <div class="card">
+    <div class="section-title">Asistencia real</div>
+    <div class="field">
+      <label>N° real de asistentes <span class="req">*</span></label>
+      <input type="number" id="asistentes" placeholder="0" min="0" max="500" inputmode="numeric" autocomplete="off" name="asi_f4n">
+      <span class="err" id="asistentes-err">Ingresa el número de asistentes</span>
+    </div>
+
+    <div class="indicadores" id="indicadores-wrap">
+      <div class="indicador" id="ind-asistencia">
+        <div class="ind-label">% Asistencia</div>
+        <div class="ind-valor" id="val-asistencia">—</div>
+        <div class="ind-desc">Asistentes / Convocados</div>
+      </div>
+      <div class="indicador" id="ind-registro">
+        <div class="ind-label">% Registro F2</div>
+        <div class="ind-valor" id="val-registro">—</div>
+        <div class="ind-desc">Registrados / Asistentes</div>
+      </div>
+    </div>
+    <div style="margin: 0 1rem 1rem; background: var(--orange-light); border: 1.5px solid var(--orange); border-radius: 8px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 13px; color: var(--orange); font-weight: 500;">Participantes registrados en F2</span>
+      <span style="font-size: 1.3rem; font-weight: 700; color: var(--orange);" id="val-registros-n">—</span>
+    </div>
+  </div>
+
+  <!-- DOCUMENTOS -->
+  <div class="card">
+    <div class="section-title">Documentos de verificación</div>
+    <p style="font-size:13px; color:var(--text-muted); padding:0.75rem 1rem 0.75rem; line-height:1.5;">
+      Adjunta la lista de asistencia firmada y dos fotos de la jornada como verificadores de la actividad.
+    </p>
+
+    <div style="padding: 0 0 0.25rem;">
+      <p style="font-size:12px; font-weight:600; color:var(--text-secondary); padding: 0 1rem 0.5rem;">Lista de asistencia firmada <span style="color:var(--orange)">*</span></p>
+      <div class="upload-area" id="upload-lista">
+        <input type="file" id="file-lista" accept="image/*,.pdf" name="lista_f4">
+        <div class="upload-default">
+          <div class="upload-icon">📋</div>
+          <div class="upload-title">Subir lista de asistencia</div>
+          <div class="upload-sub">Foto o PDF · Toca para seleccionar</div>
+        </div>
+        <div class="upload-ok" id="ok-lista">✓ Archivo seleccionado</div>
+      </div>
+      <div class="upload-err" id="err-lista">Adjunta la lista de asistencia firmada</div>
+    </div>
+
+    <div style="padding: 0.75rem 0 0;">
+      <p style="font-size:12px; font-weight:600; color:var(--text-secondary); padding: 0 1rem 0.5rem;">Fotos de la jornada <span style="color:var(--orange)">*</span></p>
+      <div class="fotos-grid">
+        <div class="foto-area" id="upload-foto1">
+          <input type="file" id="file-foto1" accept="image/*" name="foto1_f4">
+          <div class="foto-default">
+            <div class="foto-icon">📷</div>
+            <div class="foto-label">Foto 1</div>
+            <div class="foto-sub">Toca para seleccionar</div>
+          </div>
+          <div class="foto-ok" id="ok-foto1">✓ Foto seleccionada</div>
+        </div>
+        <div class="foto-area" id="upload-foto2">
+          <input type="file" id="file-foto2" accept="image/*" name="foto2_f4">
+          <div class="foto-default">
+            <div class="foto-icon">📷</div>
+            <div class="foto-label">Foto 2</div>
+            <div class="foto-sub">Toca para seleccionar</div>
+          </div>
+          <div class="foto-ok" id="ok-foto2">✓ Foto seleccionada</div>
+        </div>
+      </div>
+      <div class="fotos-err" id="err-fotos">Adjunta las dos fotos de la jornada</div>
+    </div>
+  </div>
+
+  <div class="alert-missing" id="alert-missing">
+    Por favor completa todos los campos obligatorios antes de continuar.
+  </div>
+
+  <button class="btn-primary" id="btn-cerrar">
+    Cerrar jornada en el sistema
+    <span class="btn-sub">Los documentos y datos quedarán registrados</span>
+  </button>
+
+</div>
+
+<!-- RESULTADO -->
+<div class="result-section" id="result-section">
+  <div class="result-header">
+    <div class="result-icon">🔒</div>
+    <h2>¡Jornada cerrada!</h2>
+    <p>La jornada <span id="result-jornada-id" class="id-badge-sm">APE-048</span><br>ha quedado cerrada exitosamente</p>
+  </div>
+
+  <div class="result-card">
+    <div class="result-row"><span class="rl">Módulo</span><span class="rv" id="res-modulo">—</span></div>
+    <div class="result-row"><span class="rl">Fecha</span><span class="rv" id="res-fecha">—</span></div>
+    <div class="result-row"><span class="rl">Lugar</span><span class="rv" id="res-lugar">—</span></div>
+    <div class="result-row"><span class="rl">Convocados</span><span class="rv" id="res-convocados">—</span></div>
+    <div class="result-row"><span class="rl">Asistentes reales</span><span class="rv" id="res-asistentes">—</span></div>
+  </div>
+
+  <div class="indicadores-result">
+    <div class="ind-result">
+      <div class="ind-label">% Asistencia</div>
+      <div class="ind-valor" id="res-pct-asistencia">—</div>
+      <div class="ind-desc">Asistentes / Convocados</div>
+    </div>
+    <div class="ind-result">
+      <div class="ind-label">% Registro F2</div>
+      <div class="ind-valor" id="res-pct-registro">—</div>
+      <div class="ind-desc">Registrados / Asistentes</div>
+    </div>
+  </div>
+  <div style="margin: 0 1rem 1rem; background: var(--orange-light); border: 1.5px solid var(--orange); border-radius: 8px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center;">
+    <span style="font-size: 13px; color: var(--orange); font-weight: 500;">Participantes registrados en F2</span>
+    <span style="font-size: 1.3rem; font-weight: 700; color: var(--orange);" id="res-registros-n">—</span>
+  </div>
+
+  <div style="background:#f2f4f7; border-radius:8px; margin:0 1rem 1rem; padding:0.85rem 1rem; display:flex; align-items:flex-start; gap:10px;">
+    <span style="font-size:1.4rem; line-height:1;">📸</span>
+    <span style="font-size:13px; color:var(--text-secondary); line-height:1.5;">
+      <strong style="color:var(--text); display:block; margin-bottom:2px;">Guarda tu comprobante</strong>
+      Te sugerimos tomar un pantallazo de esta pantalla como respaldo del cierre de jornada.
+    </span>
+  </div>
+</div>
+
+<script>
+const JORNADAS = {
+  'APE-025': { modulo:'APE — Prácticas Esenciales', nivel:'General', fecha:'04/09/2026', lugar:'CESFAM El Roble, La Pintana', convocados:25 },
+  'APE-048': { modulo:'APE — Prácticas Esenciales', nivel:'General', fecha:'04/09/2026', lugar:'CESFAM El Roble, La Pintana', convocados:30 },
+  'DEP-024': { modulo:'DEP — Depresión', nivel:'Intermedia', fecha:'03/09/2026', lugar:'CESFAM Recoleta, Recoleta', convocados:20 },
+  'PSI-013': { modulo:'PSI — Psicosis', nivel:'Avanzada', fecha:'02/09/2026', lugar:'CESFAM Barón, Valparaíso', convocados:18 },
+};
+
+// Registros F2 simulados por jornada (en producción vendrá de Sheets)
+const REGISTROS_F2 = {
+  'APE-025': 18,
+  'APE-048': 24,
+  'DEP-024': 15,
+  'PSI-013': 12,
+};
+
+const jornadaModuloEl = document.getElementById('jornada-modulo');
+const jornadaNumEl = document.getElementById('jornada-num');
+let convocadosJornada = 0;
+let registrosF2 = 0;
+
+function getJornadaKey() {
+  const mod = jornadaModuloEl.value.trim();
+  const num = jornadaNumEl.value.trim();
+  if (!mod || !num) return null;
+  return mod + '-' + String(parseInt(num)).padStart(3, '0');
+}
+
+function buscarJornada() {
+  const key = getJornadaKey();
+  const card = document.getElementById('jornada-card');
+  if (!key) { card.classList.remove('visible'); convocadosJornada = 0; return; }
+  const jornada = JORNADAS[key];
+  if (jornada) {
+    card.classList.add('visible');
+    document.getElementById('jc-modulo').textContent = jornada.modulo;
+    document.getElementById('jc-nivel').textContent = jornada.nivel;
+    document.getElementById('jc-fecha').textContent = jornada.fecha;
+    document.getElementById('jc-lugar').textContent = jornada.lugar;
+    document.getElementById('jc-convocados').textContent = jornada.convocados + ' personas';
+    document.getElementById('jornada-err').classList.remove('visible');
+    jornadaModuloEl.classList.remove('error');
+    jornadaNumEl.classList.remove('error');
+    convocadosJornada = jornada.convocados;
+    registrosF2 = REGISTROS_F2[key] || 0;
+    calcularIndicadores();
+  } else {
+    card.classList.remove('visible');
+    convocadosJornada = 0;
+  }
+}
+
+function calcularIndicadores() {
+  const asistentes = parseInt(document.getElementById('asistentes').value) || 0;
+  const indAsistencia = document.getElementById('ind-asistencia');
+  const indRegistro = document.getElementById('ind-registro');
+
+  if (convocadosJornada > 0 && asistentes > 0) {
+    const pctAsistencia = Math.round((asistentes / convocadosJornada) * 100);
+    const pctRegistro = Math.round((registrosF2 / asistentes) * 100);
+    document.getElementById('val-asistencia').textContent = pctAsistencia + '%';
+    document.getElementById('val-registro').textContent = pctRegistro + '%';
+    document.getElementById('val-registros-n').textContent = registrosF2;
+    indAsistencia.classList.add('activo');
+    indRegistro.classList.add('activo');
+  } else if (convocadosJornada > 0) {
+    document.getElementById('val-asistencia').textContent = '—';
+    document.getElementById('val-registro').textContent = '—';
+    indAsistencia.classList.remove('activo');
+    indRegistro.classList.remove('activo');
+  }
+}
+
+['change'].forEach(evt => jornadaModuloEl.addEventListener(evt, buscarJornada));
+['input','keyup','change'].forEach(evt => jornadaNumEl.addEventListener(evt, buscarJornada));
+['input','keyup','change'].forEach(evt => document.getElementById('asistentes').addEventListener(evt, calcularIndicadores));
+
+// Archivos
+function setupUpload(inputId, areaId, okId) {
+  const input = document.getElementById(inputId);
+  const area = document.getElementById(areaId);
+  const ok = document.getElementById(okId);
+  input.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      const name = this.files[0].name;
+      area.classList.add('has-file');
+      ok.textContent = '✓ ' + (name.length > 25 ? name.substring(0,22) + '...' : name);
+    } else {
+      area.classList.remove('has-file');
+    }
+  });
+}
+
+setupUpload('file-lista', 'upload-lista', 'ok-lista');
+setupUpload('file-foto1', 'upload-foto1', 'ok-foto1');
+setupUpload('file-foto2', 'upload-foto2', 'ok-foto2');
+
+// Demo
+document.getElementById('btn-demo').addEventListener('click', function() {
+  jornadaModuloEl.value = 'APE';
+  jornadaNumEl.value = '48';
+  buscarJornada();
+  setTimeout(() => {
+    document.getElementById('asistentes').value = '27';
+    calcularIndicadores();
+  }, 100);
+});
+
+// Validación
+function validate() {
+  let ok = true;
+  const jornadaKey = getJornadaKey();
+  const jornadaValida = jornadaKey && (JORNADAS[jornadaKey] || (jornadaModuloEl.value && jornadaNumEl.value));
+  if (!jornadaValida) {
+    jornadaModuloEl.classList.add('error');
+    jornadaNumEl.classList.add('error');
+    document.getElementById('jornada-err').classList.add('visible');
+    ok = false;
+  } else {
+    jornadaModuloEl.classList.remove('error');
+    jornadaNumEl.classList.remove('error');
+    document.getElementById('jornada-err').classList.remove('visible');
+  }
+
+  const asistentes = parseInt(document.getElementById('asistentes').value);
+  if (!asistentes || asistentes < 0) {
+    document.getElementById('asistentes').classList.add('error');
+    document.getElementById('asistentes-err').classList.add('visible');
+    ok = false;
+  } else {
+    document.getElementById('asistentes').classList.remove('error');
+    document.getElementById('asistentes-err').classList.remove('visible');
+  }
+
+  const listaFile = document.getElementById('file-lista');
+  if (!listaFile.files || listaFile.files.length === 0) {
+    document.getElementById('err-lista').classList.add('visible');
+    ok = false;
+  } else {
+    document.getElementById('err-lista').classList.remove('visible');
+  }
+
+  const foto1 = document.getElementById('file-foto1');
+  const foto2 = document.getElementById('file-foto2');
+  if (!foto1.files || foto1.files.length === 0 || !foto2.files || foto2.files.length === 0) {
+    document.getElementById('err-fotos').classList.add('visible');
+    ok = false;
+  } else {
+    document.getElementById('err-fotos').classList.remove('visible');
+  }
+
+  document.getElementById('alert-missing').classList.toggle('visible', !ok);
+  return ok;
+}
+
+document.getElementById('btn-cerrar').addEventListener('click', function() {
+  if (!validate()) {
+    const alertEl = document.getElementById('alert-missing');
+    const y = alertEl.getBoundingClientRect().top + window.pageYOffset - 80;
+    window.scrollTo(0, y);
+    return;
+  }
+
+  const jornadaKey = getJornadaKey();
+  const jornada = JORNADAS[jornadaKey] || { modulo: jornadaModuloEl.options[jornadaModuloEl.selectedIndex].text, fecha:'—', lugar:'—', convocados: convocadosJornada };
+  const asistentes = parseInt(document.getElementById('asistentes').value);
+  const pctAsistencia = convocadosJornada > 0 ? Math.round((asistentes / jornada.convocados) * 100) : '—';
+  const pctRegistro = asistentes > 0 ? Math.round((registrosF2 / asistentes) * 100) : '—';
+
+  document.getElementById('result-jornada-id').textContent = jornadaKey;
+  document.getElementById('res-modulo').textContent = jornada.modulo;
+  document.getElementById('res-fecha').textContent = jornada.fecha;
+  document.getElementById('res-lugar').textContent = jornada.lugar;
+  document.getElementById('res-convocados').textContent = jornada.convocados + ' personas';
+  document.getElementById('res-asistentes').textContent = asistentes + ' personas';
+  document.getElementById('res-pct-asistencia').textContent = pctAsistencia + '%';
+  document.getElementById('res-pct-registro').textContent = pctRegistro + '%';
+  document.getElementById('res-registros-n').textContent = registrosF2;
+
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('result-section').classList.add('visible');
+  window.scrollTo(0, 0);
+});
+
+function resetFormulario() {
+  jornadaModuloEl.value = '';
+  jornadaNumEl.value = '';
+  document.getElementById('asistentes').value = '';
+  document.getElementById('jornada-card').classList.remove('visible');
+  document.getElementById('alert-missing').classList.remove('visible');
+  document.getElementById('jornada-err').classList.remove('visible');
+  document.getElementById('asistentes-err').classList.remove('visible');
+  document.getElementById('err-lista').classList.remove('visible');
+  document.getElementById('err-fotos').classList.remove('visible');
+  document.getElementById('val-asistencia').textContent = '—';
+  document.getElementById('val-registro').textContent = '—';
+  document.getElementById('ind-asistencia').classList.remove('activo');
+  document.getElementById('ind-registro').classList.remove('activo');
+  ['upload-lista','upload-foto1','upload-foto2'].forEach(id => document.getElementById(id).classList.remove('has-file'));
+  convocadosJornada = 0; registrosF2 = 0;
+}
+
+document.addEventListener('DOMContentLoaded', resetFormulario);
+window.addEventListener('pageshow', function() {
+  resetFormulario();
+  setTimeout(resetFormulario, 50);
+  setTimeout(resetFormulario, 300);
+});
+
+window.addEventListener('DOMContentLoaded', function() {
+  const params = new URLSearchParams(window.location.search);
+  const jid = params.get('jornada');
+  if (jid) {
+    const match = jid.toUpperCase().match(/^([A-Z]+)-(\d+)$/);
+    if (match) {
+      jornadaModuloEl.value = match[1];
+      jornadaNumEl.value = parseInt(match[2]).toString();
+      buscarJornada();
+    }
+  }
+});
+</script>
+</body>
+</html>
