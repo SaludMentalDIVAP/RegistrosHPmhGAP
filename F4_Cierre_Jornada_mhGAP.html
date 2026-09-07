@@ -581,28 +581,47 @@ function getJornadaKey() {
   return mod + '-' + String(parseInt(num)).padStart(3, '0');
 }
 
+let buscarTimeout = null;
 function buscarJornada() {
   const key = getJornadaKey();
   const card = document.getElementById('jornada-card');
+  const errEl = document.getElementById('jornada-err');
   if (!key) { card.classList.remove('visible'); convocadosJornada = 0; return; }
-  const jornada = JORNADAS[key];
-  if (jornada) {
-    card.classList.add('visible');
-    document.getElementById('jc-modulo').textContent = jornada.modulo;
-    document.getElementById('jc-nivel').textContent = jornada.nivel;
-    document.getElementById('jc-fecha').textContent = jornada.fecha;
-    document.getElementById('jc-lugar').textContent = jornada.lugar;
-    document.getElementById('jc-convocados').textContent = jornada.convocados + ' personas';
-    document.getElementById('jornada-err').classList.remove('visible');
-    jornadaModuloEl.classList.remove('error');
-    jornadaNumEl.classList.remove('error');
-    convocadosJornada = jornada.convocados;
-    registrosF2 = REGISTROS_F2[key] || 0;
-    calcularIndicadores();
-  } else {
+
+  clearTimeout(buscarTimeout);
+  buscarTimeout = setTimeout(async () => {
     card.classList.remove('visible');
-    convocadosJornada = 0;
-  }
+    errEl.classList.remove('visible');
+
+    try {
+      const resp = await fetch(SCRIPT_URL + '?accion=getJornada&id=' + encodeURIComponent(key));
+      const result = await resp.json();
+
+      if (result.ok) {
+        const jornada = result.jornada;
+        card.classList.add('visible');
+        document.getElementById('jc-modulo').textContent = jornada.modulo;
+        document.getElementById('jc-nivel').textContent = jornada.nivel;
+        document.getElementById('jc-fecha').textContent = jornada.fecha;
+        document.getElementById('jc-lugar').textContent = jornada.lugar;
+        document.getElementById('jc-convocados').textContent = jornada.convocados + ' personas';
+        jornadaModuloEl.classList.remove('error');
+        jornadaNumEl.classList.remove('error');
+        errEl.classList.remove('visible');
+        convocadosJornada = parseInt(jornada.convocados) || 0;
+        registrosF2 = parseInt(jornada.registrosF2) || 0;
+        document.getElementById('val-registros-n').textContent = registrosF2;
+        calcularIndicadores();
+      } else {
+        card.classList.remove('visible');
+        convocadosJornada = 0;
+        errEl.textContent = 'Jornada no encontrada — debes iniciarla primero en F1';
+        errEl.classList.add('visible');
+      }
+    } catch(e) {
+      card.classList.remove('visible');
+    }
+  }, 600);
 }
 
 function calcularIndicadores() {
