@@ -725,13 +725,45 @@ document.getElementById('btn-cerrar').addEventListener('click', async function()
   const jornadaKey = getJornadaKey();
   const asistentes = parseInt(document.getElementById('asistentes').value);
 
+  // Convertir archivos a base64
+  async function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({
+        data: reader.result.split(',')[1],
+        name: file.name,
+        type: file.type
+      });
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const listaFile = document.getElementById('file-lista').files[0];
+  const foto1File = document.getElementById('file-foto1').files[0];
+  const foto2File = document.getElementById('file-foto2').files[0];
+
+  let listaB64, foto1B64, foto2B64;
+  try {
+    [listaB64, foto1B64, foto2B64] = await Promise.all([
+      toBase64(listaFile),
+      toBase64(foto1File),
+      toBase64(foto2File)
+    ]);
+  } catch(e) {
+    alert('Error al leer los archivos. Intenta nuevamente.');
+    btn.textContent = 'Cerrar jornada en el sistema';
+    btn.disabled = false;
+    return;
+  }
+
   const payload = {
     formulario: 'F4',
     id_jornada: jornadaKey,
     asistentes: asistentes,
-    url_lista: 'Pendiente subida a Drive',
-    url_foto1: 'Pendiente subida a Drive',
-    url_foto2: 'Pendiente subida a Drive'
+    lista: listaB64,
+    foto1: foto1B64,
+    foto2: foto2B64
   };
 
   try {
