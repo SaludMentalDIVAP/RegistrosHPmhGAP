@@ -890,43 +890,80 @@ function validate() {
 }
 
 // INICIAR JORNADA
-document.getElementById('btn-iniciar').addEventListener('click', function() {
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdUDJu4TOoIWKeg6SGE7IRds8usr61LZbCQ-kkchPkRLRiZ9rxqZkoX1WoMYcwB0Y/exec';
+
+document.getElementById('btn-iniciar').addEventListener('click', async function() {
   if (!validate()) {
-    // Safari-compatible scroll
     const alertEl = document.getElementById('alert-missing');
     const y = alertEl.getBoundingClientRect().top + window.pageYOffset - 80;
     window.scrollTo(0, y);
     return;
   }
 
-  const modulo = document.getElementById('modulo').value;
-  const email = document.getElementById('email').value;
-  const num = (CORRELATIVOS[modulo] || 0) + 1;
-  const id = modulo + '-' + String(num).padStart(3, '0');
-  const qrUrl = 'https://mhgap.minsal.cl/F2?jornada=' + id;
+  // Mostrar estado de carga
+  const btn = document.getElementById('btn-iniciar');
+  btn.textContent = 'Iniciando jornada...';
+  btn.disabled = true;
 
-  document.getElementById('result-id').textContent = id;
-  document.getElementById('email-sent-txt').textContent = 'QR enviado a ' + email;
+  const mismoLugar = document.getElementById('mismo-lugar').checked;
+  const payload = {
+    formulario: 'F1',
+    rut: document.getElementById('rut').value,
+    nombre: document.getElementById('nombre').value,
+    ss: document.getElementById('ss-cap').value,
+    comuna: document.getElementById('comuna-cap').value,
+    centro: document.getElementById('centro-cap').value,
+    email: document.getElementById('email').value,
+    modulo: document.getElementById('modulo').value,
+    nivel: document.getElementById('nivel').value,
+    fecha: document.getElementById('fecha').value,
+    convocados: document.getElementById('convocados').value,
+    ss_jornada: mismoLugar ? document.getElementById('ss-cap').value : document.getElementById('ss-jornada').value,
+    comuna_jornada: mismoLugar ? document.getElementById('comuna-cap').value : document.getElementById('comuna-jornada').value,
+    centro_jornada: mismoLugar ? document.getElementById('centro-cap').value : document.getElementById('centro-jornada').value,
+    dato_manual: datosManual || !rutEncontrado
+  };
 
-  // Mostrar aviso de datos manuales si corresponde
-  document.getElementById('manual-notice').classList.toggle('visible', datosManual || !rutEncontrado);
+  try {
+    const resp = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
 
-  // Generar QR
-  const wrap = document.getElementById('qr-canvas-wrap');
-  wrap.innerHTML = '';
-  new QRCode(wrap, {
-    text: qrUrl,
-    width: 220,
-    height: 220,
-    colorDark: '#00477A',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
-  });
+    if (result.ok) {
+      const id = result.resultado.idJornada;
+      const qrUrl = 'https://saludmentaldivap.github.io/RegistrosHPmhGAP/F2_Registro_Participante_mhGAP.html?jornada=' + id;
 
-  document.getElementById('form-section').style.display = 'none';
-  document.getElementById('result-section').classList.add('visible');
-  window.scrollTo(0, 0);
-  document.getElementById('btn-download-qr').dataset.id = id;
+      document.getElementById('result-id').textContent = id;
+      document.getElementById('email-sent-txt').textContent = 'QR enviado a ' + payload.email;
+      document.getElementById('manual-notice').classList.toggle('visible', payload.dato_manual);
+
+      const wrap = document.getElementById('qr-canvas-wrap');
+      wrap.innerHTML = '';
+      new QRCode(wrap, {
+        text: qrUrl,
+        width: 220,
+        height: 220,
+        colorDark: '#00477A',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('result-section').classList.add('visible');
+      window.scrollTo(0, 0);
+      document.getElementById('btn-download-qr').dataset.id = id;
+    } else {
+      alert('Error al registrar la jornada: ' + result.error);
+      btn.textContent = 'Iniciar jornada en el sistema';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Error de conexión. Verifica tu internet e intenta nuevamente.');
+    btn.textContent = 'Iniciar jornada en el sistema';
+    btn.disabled = false;
+  }
 });
 
 // DESCARGAR QR — compatible Safari iOS

@@ -708,7 +708,9 @@ function validate() {
   return ok;
 }
 
-document.getElementById('btn-cerrar').addEventListener('click', function() {
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdUDJu4TOoIWKeg6SGE7IRds8usr61LZbCQ-kkchPkRLRiZ9rxqZkoX1WoMYcwB0Y/exec';
+
+document.getElementById('btn-cerrar').addEventListener('click', async function() {
   if (!validate()) {
     const alertEl = document.getElementById('alert-missing');
     const y = alertEl.getBoundingClientRect().top + window.pageYOffset - 80;
@@ -716,25 +718,55 @@ document.getElementById('btn-cerrar').addEventListener('click', function() {
     return;
   }
 
+  const btn = document.getElementById('btn-cerrar');
+  btn.textContent = 'Cerrando jornada...';
+  btn.disabled = true;
+
   const jornadaKey = getJornadaKey();
-  const jornada = JORNADAS[jornadaKey] || { modulo: jornadaModuloEl.options[jornadaModuloEl.selectedIndex].text, fecha:'—', lugar:'—', convocados: convocadosJornada };
   const asistentes = parseInt(document.getElementById('asistentes').value);
-  const pctAsistencia = convocadosJornada > 0 ? Math.round((asistentes / jornada.convocados) * 100) : '—';
-  const pctRegistro = asistentes > 0 ? Math.round((registrosF2 / asistentes) * 100) : '—';
 
-  document.getElementById('result-jornada-id').textContent = jornadaKey;
-  document.getElementById('res-modulo').textContent = jornada.modulo;
-  document.getElementById('res-fecha').textContent = jornada.fecha;
-  document.getElementById('res-lugar').textContent = jornada.lugar;
-  document.getElementById('res-convocados').textContent = jornada.convocados + ' personas';
-  document.getElementById('res-asistentes').textContent = asistentes + ' personas';
-  document.getElementById('res-pct-asistencia').textContent = pctAsistencia + '%';
-  document.getElementById('res-pct-registro').textContent = pctRegistro + '%';
-  document.getElementById('res-registros-n').textContent = registrosF2;
+  const payload = {
+    formulario: 'F4',
+    id_jornada: jornadaKey,
+    asistentes: asistentes,
+    url_lista: 'Pendiente subida a Drive',
+    url_foto1: 'Pendiente subida a Drive',
+    url_foto2: 'Pendiente subida a Drive'
+  };
 
-  document.getElementById('form-section').style.display = 'none';
-  document.getElementById('result-section').classList.add('visible');
-  window.scrollTo(0, 0);
+  try {
+    const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const result = await resp.json();
+
+    if (result.ok) {
+      const jornada = JORNADAS[jornadaKey] || { modulo: jornadaModuloEl.options[jornadaModuloEl.selectedIndex].text, fecha:'—', lugar:'—', convocados: convocadosJornada };
+      const pctAsistencia = result.resultado.pctAsistencia;
+      const pctRegistro = result.resultado.pctRegistro;
+      const registrosReales = result.resultado.registrosF2;
+
+      document.getElementById('result-jornada-id').textContent = jornadaKey;
+      document.getElementById('res-modulo').textContent = jornada.modulo;
+      document.getElementById('res-fecha').textContent = jornada.fecha;
+      document.getElementById('res-lugar').textContent = jornada.lugar || '—';
+      document.getElementById('res-convocados').textContent = (jornada.convocados || convocadosJornada) + ' personas';
+      document.getElementById('res-asistentes').textContent = asistentes + ' personas';
+      document.getElementById('res-pct-asistencia').textContent = pctAsistencia + '%';
+      document.getElementById('res-pct-registro').textContent = pctRegistro + '%';
+      document.getElementById('res-registros-n').textContent = registrosReales;
+
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('result-section').classList.add('visible');
+      window.scrollTo(0, 0);
+    } else {
+      alert('Error al cerrar la jornada: ' + result.error);
+      btn.textContent = 'Cerrar jornada en el sistema';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Error de conexión. Verifica tu internet e intenta nuevamente.');
+    btn.textContent = 'Cerrar jornada en el sistema';
+    btn.disabled = false;
+  }
 });
 
 function resetFormulario() {

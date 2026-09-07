@@ -950,24 +950,71 @@ function validate() {
 }
 
 // ── ENVIAR ──
-document.getElementById('btn-enviar').addEventListener('click', function() {
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdUDJu4TOoIWKeg6SGE7IRds8usr61LZbCQ-kkchPkRLRiZ9rxqZkoX1WoMYcwB0Y/exec';
+
+document.getElementById('btn-enviar').addEventListener('click', async function() {
   if (!validate()) {
     const alertEl = document.getElementById('alert-missing');
     const y = alertEl.getBoundingClientRect().top + window.pageYOffset - 80;
     window.scrollTo(0, y);
     return;
   }
+
+  const btn = document.getElementById('btn-enviar');
+  btn.textContent = 'Registrando...';
+  btn.disabled = true;
+
   const jornadaKey = getJornadaKey();
-  const jornada = JORNADAS[jornadaKey] || { modulo: jornadaModuloEl.options[jornadaModuloEl.selectedIndex].text, fecha: '—' };
-  document.getElementById('result-jornada-id').textContent = jornadaKey;
-  document.getElementById('res-nombre').textContent = document.getElementById('nombre').value;
-  document.getElementById('res-modulo').textContent = jornada.modulo;
-  document.getElementById('res-fecha').textContent = jornada.fecha;
-  document.getElementById('res-centro').textContent = document.getElementById('centro').value;
-  document.getElementById('manual-notice').classList.toggle('visible', datosManual || !rutEncontrado);
-  document.getElementById('form-section').style.display = 'none';
-  document.getElementById('result-section').classList.add('visible');
-  window.scrollTo(0, 0);
+  const checkeds = document.querySelectorAll('#ambitos-group input[type="checkbox"]:checked');
+  const ambitos = Array.from(checkeds).map(c => c.value).join(', ');
+
+  const payload = {
+    formulario: 'F2',
+    id_jornada: jornadaKey,
+    rut: document.getElementById('rut').value,
+    nombre: document.getElementById('nombre').value,
+    ss: document.getElementById('ss').value,
+    centro: document.getElementById('centro').value,
+    profesion: document.getElementById('profesion').value,
+    estrella_1: starsValues['s1'],
+    estrella_2: starsValues['s2'],
+    estrella_3: starsValues['s3'],
+    estrella_4: starsValues['s4'],
+    estrella_5: starsValues['s5'],
+    estrella_6: starsValues['s6'],
+    estrella_7: starsValues['s7'],
+    estrella_8: starsValues['s8'],
+    lo_mejor: document.getElementById('mejor').value,
+    ambitos: ambitos,
+    sugerencias: document.getElementById('sugerencia').value,
+    dato_manual: datosManual || !rutEncontrado
+  };
+
+  try {
+    const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const result = await resp.json();
+
+    if (result.ok) {
+      const jornada = JORNADAS[jornadaKey] || { modulo: jornadaModuloEl.options[jornadaModuloEl.selectedIndex].text, fecha: '—' };
+      document.getElementById('result-jornada-id').textContent = jornadaKey;
+      document.getElementById('res-nombre').textContent = payload.nombre;
+      document.getElementById('res-modulo').textContent = jornada.modulo;
+      document.getElementById('res-fecha').textContent = jornada.fecha;
+      document.getElementById('res-centro').textContent = payload.centro;
+      document.getElementById('manual-notice').classList.toggle('visible', payload.dato_manual);
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('result-section').classList.add('visible');
+      window.scrollTo(0, 0);
+    } else {
+      alert('Error al registrar: ' + result.error);
+      btn.textContent = 'Registrar mi participación';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Error de conexión. Verifica tu internet e intenta nuevamente.');
+    btn.textContent = 'Registrar mi participación';
+    btn.disabled = false;
+  }
 });
 
 // ── RESET Safari ──

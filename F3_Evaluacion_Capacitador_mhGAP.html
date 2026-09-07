@@ -795,24 +795,63 @@ function validate() {
   return ok;
 }
 
-document.getElementById('btn-enviar').addEventListener('click', function() {
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdUDJu4TOoIWKeg6SGE7IRds8usr61LZbCQ-kkchPkRLRiZ9rxqZkoX1WoMYcwB0Y/exec';
+
+document.getElementById('btn-enviar').addEventListener('click', async function() {
   if (!validate()) {
     const alertEl = document.getElementById('alert-missing');
     const y = alertEl.getBoundingClientRect().top + window.pageYOffset - 80;
     window.scrollTo(0, y);
     return;
   }
+
+  const btn = document.getElementById('btn-enviar');
+  btn.textContent = 'Enviando evaluación...';
+  btn.disabled = true;
+
   const jornadaKey = getJornadaKey();
-  const jornada = JORNADAS[jornadaKey] || { modulo: jornadaModuloEl.options[jornadaModuloEl.selectedIndex].text, fecha:'—' };
-  document.getElementById('result-jornada-id').textContent = jornadaKey;
-  document.getElementById('res-nombre').textContent = document.getElementById('nombre').value;
-  document.getElementById('res-modulo').textContent = jornada.modulo;
-  document.getElementById('res-fecha').textContent = jornada.fecha;
-  document.getElementById('res-centro').textContent = document.getElementById('centro').value;
-  document.getElementById('manual-notice').classList.toggle('visible', datosManual || !rutEncontrado);
-  document.getElementById('form-section').style.display = 'none';
-  document.getElementById('result-section').classList.add('visible');
-  window.scrollTo(0, 0);
+  const payload = {
+    formulario: 'F3',
+    id_jornada: jornadaKey,
+    rut: document.getElementById('rut').value,
+    nombre: document.getElementById('nombre').value,
+    ss: document.getElementById('ss').value,
+    centro: document.getElementById('centro').value,
+    profesion: document.getElementById('profesion').value,
+    estrella_1: starsValues['s1'],
+    estrella_2: starsValues['s2'],
+    estrella_3: starsValues['s3'],
+    dificultades: document.getElementById('dificultades').value,
+    estrategias: document.getElementById('estrategias').value,
+    aprendizajes: document.getElementById('aprendizajes').value,
+    dato_manual: datosManual || !rutEncontrado
+  };
+
+  try {
+    const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const result = await resp.json();
+
+    if (result.ok) {
+      const jornada = JORNADAS[jornadaKey] || { modulo: jornadaModuloEl.options[jornadaModuloEl.selectedIndex].text, fecha:'—' };
+      document.getElementById('result-jornada-id').textContent = jornadaKey;
+      document.getElementById('res-nombre').textContent = payload.nombre;
+      document.getElementById('res-modulo').textContent = jornada.modulo;
+      document.getElementById('res-fecha').textContent = jornada.fecha;
+      document.getElementById('res-centro').textContent = payload.centro;
+      document.getElementById('manual-notice').classList.toggle('visible', payload.dato_manual);
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('result-section').classList.add('visible');
+      window.scrollTo(0, 0);
+    } else {
+      alert('Error al enviar: ' + result.error);
+      btn.textContent = 'Enviar evaluación';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Error de conexión. Verifica tu internet e intenta nuevamente.');
+    btn.textContent = 'Enviar evaluación';
+    btn.disabled = false;
+  }
 });
 
 function resetFormulario() {
