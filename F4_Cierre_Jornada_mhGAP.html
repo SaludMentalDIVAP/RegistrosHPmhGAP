@@ -476,27 +476,18 @@ body {
 
     <div style="padding: 0.75rem 0 0;">
       <p style="font-size:12px; font-weight:600; color:var(--text-secondary); padding: 0 1rem 0.5rem;">Fotos de la jornada <span style="color:var(--orange)">*</span></p>
-      <div class="fotos-grid">
-        <div class="foto-area" id="upload-foto1">
+      <div style="margin: 0 1rem;">
+        <div class="foto-area" id="upload-foto1" style="max-width:100%;">
           <input type="file" id="file-foto1" accept="image/*" name="foto1_f4">
           <div class="foto-default">
             <div class="foto-icon">📷</div>
-            <div class="foto-label">Foto 1</div>
+            <div class="foto-label">Foto de la jornada</div>
             <div class="foto-sub">Toca para seleccionar</div>
           </div>
           <div class="foto-ok" id="ok-foto1">✓ Foto seleccionada</div>
         </div>
-        <div class="foto-area" id="upload-foto2">
-          <input type="file" id="file-foto2" accept="image/*" name="foto2_f4">
-          <div class="foto-default">
-            <div class="foto-icon">📷</div>
-            <div class="foto-label">Foto 2</div>
-            <div class="foto-sub">Toca para seleccionar</div>
-          </div>
-          <div class="foto-ok" id="ok-foto2">✓ Foto seleccionada</div>
-        </div>
       </div>
-      <div class="fotos-err" id="err-fotos">Adjunta las dos fotos de la jornada</div>
+      <div class="fotos-err" id="err-fotos" style="margin: 0.25rem 1rem 0.5rem;">Adjunta una foto de la jornada</div>
     </div>
   </div>
 
@@ -715,8 +706,7 @@ function validate() {
   }
 
   const foto1 = document.getElementById('file-foto1');
-  const foto2 = document.getElementById('file-foto2');
-  if (!foto1.files || foto1.files.length === 0 || !foto2.files || foto2.files.length === 0) {
+  if (!foto1.files || foto1.files.length === 0) {
     document.getElementById('err-fotos').classList.add('visible');
     ok = false;
   } else {
@@ -760,15 +750,35 @@ document.getElementById('btn-cerrar').addEventListener('click', async function()
 
   const listaFile = document.getElementById('file-lista').files[0];
   const foto1File = document.getElementById('file-foto1').files[0];
-  const foto2File = document.getElementById('file-foto2').files[0];
 
-  let listaB64, foto1B64, foto2B64;
+  // Comprimir imagen antes de convertir a base64
+  async function comprimirImagen(file, maxW = 1200, quality = 0.7) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        const data = canvas.toDataURL('image/jpeg', quality).split(',')[1];
+        resolve({ data, name: file.name.replace(/\.[^.]+$/, '.jpg'), type: 'image/jpeg' });
+      };
+      img.src = url;
+    });
+  }
+
+  let listaB64, foto1B64;
   try {
-    [listaB64, foto1B64, foto2B64] = await Promise.all([
-      toBase64(listaFile),
-      toBase64(foto1File),
-      toBase64(foto2File)
-    ]);
+    // Lista puede ser PDF o imagen
+    if (listaFile.type === 'application/pdf') {
+      listaB64 = await toBase64(listaFile);
+    } else {
+      listaB64 = await comprimirImagen(listaFile);
+    }
+    foto1B64 = await comprimirImagen(foto1File);
   } catch(e) {
     alert('Error al leer los archivos. Intenta nuevamente.');
     btn.textContent = 'Cerrar jornada en el sistema';
@@ -781,8 +791,7 @@ document.getElementById('btn-cerrar').addEventListener('click', async function()
     id_jornada: jornadaKey,
     asistentes: asistentes,
     lista: listaB64,
-    foto1: foto1B64,
-    foto2: foto2B64
+    foto1: foto1B64
   };
 
   try {
@@ -834,7 +843,7 @@ function resetFormulario() {
   document.getElementById('val-registro').textContent = '—';
   document.getElementById('ind-asistencia').classList.remove('activo');
   document.getElementById('ind-registro').classList.remove('activo');
-  ['upload-lista','upload-foto1','upload-foto2'].forEach(id => document.getElementById(id).classList.remove('has-file'));
+  ['upload-lista','upload-foto1'].forEach(id => document.getElementById(id).classList.remove('has-file'));
   convocadosJornada = 0; registrosF2 = 0;
 }
 
